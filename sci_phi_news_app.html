@@ -206,6 +206,11 @@ function getCatLabel(cat) {
   return { science:'科学', philosophy:'哲学', history:'科学史', occult:'神秘・オカルト', mixed:'複合' }[cat] || cat;
 }
 
+function articleUrl(a) {
+  if (a.url) return a.url;
+  return 'https://news.google.com/search?q=' + encodeURIComponent(a.title + ' ' + a.source) + '&hl=ja&gl=JP&ceid=JP:ja';
+}
+
 function renderCards() {
   const filtered = activeFilter === 'all' ? articles : articles.filter(a => a.category === activeFilter);
   const el = document.getElementById('content');
@@ -213,8 +218,8 @@ function renderCards() {
     el.innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">記事がありません</div><div class="empty-sub">「記事を取得」ボタンで最新記事を検索します</div></div>`;
     return;
   }
-  el.innerHTML = `<div class="grid">${filtered.map(a => `
-    <div class="card ${a.category}">
+  el.innerHTML = `<div class="grid">${filtered.map((a, i) => `
+    <div class="card ${a.category}" data-idx="${i}">
       <div class="card-meta">
         <span class="cat-badge ${a.category}">${getCatLabel(a.category)}</span>
         <span class="card-source">${a.source}</span>
@@ -222,9 +227,16 @@ function renderCards() {
       </div>
       <div class="card-title">${a.title}</div>
       <div class="card-summary">${a.summary}</div>
-      ${a.url ? `<a class="card-link" href="${a.url}" target="_blank">記事を読む →</a>` : ''}
+      <span class="card-link">${a.url ? '記事を読む →' : '関連記事を検索 →'}</span>
     </div>
   `).join('')}</div>`;
+
+  el.querySelector('.grid').addEventListener('click', e => {
+    const card = e.target.closest('.card[data-idx]');
+    if (!card) return;
+    const a = filtered[parseInt(card.dataset.idx, 10)];
+    window.open(articleUrl(a), '_blank', 'noopener,noreferrer');
+  });
 }
 
 const SKELETON_HTML = `<div class="loading-grid">${[...Array(6)].map(()=>`
@@ -256,7 +268,7 @@ function buildPrompt(excludeTitles = []) {
 - occult（神秘主義・錬金術・オカルト・宗教思想・ニューエイジ）
 - mixed（複数カテゴリにまたがる）${excludeNote}
 
-以下のJSON形式のみで返答してください（他のテキスト不要）：
+以下のJSON形式のみで返答してください（コードブロック・説明文は不要。最初の文字は { ）：
 {
   "articles": [
     {
@@ -265,38 +277,60 @@ function buildPrompt(excludeTitles = []) {
       "category": "science|philosophy|history|occult|mixed",
       "source": "媒体名",
       "date": "YYYY/MM/DD",
-      "url": "記事URL（不明な場合は空文字）"
+      "url": "記事の正確なURL"
     }
   ]
 }`;
 }
 
 async function callAPI(prompt, apiKey) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-opus-4-5',
-      max_tokens: 4000,
-      system: '必ずJSON形式のみで返答してください。説明文・マークダウン・コードブロック記号は一切不要です。返答の最初の文字は { でなければなりません。',
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || `API error (${res.status})`);
-  const textBlock = data.content?.find(b => b.type === 'text');
-  if (!textBlock) throw new Error(`テキスト応答がありません (stop_reason: ${data.stop_reason})`);
-  const raw = textBlock.text.trim();
-  const stripped = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-  const jsonMatch = stripped.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error(`記事データのパースに失敗しました\n---\n${raw.slice(0, 300)}`);
-  const parsed = JSON.parse(jsonMatch[0]);
-  return parsed.articles || [];
+  const messages = [{ role: 'user', content: prompt }];
+  const MAX_TURNS = 10;
+
+  for (let turn = 0; turn < MAX_TURNS; turn++) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'web-search-2025-03-05',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 5000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || `API error (${res.status})`);
+
+    if (data.stop_reason === 'end_turn') {
+      const textBlock = data.content?.find(b => b.type === 'text');
+      if (!textBlock) throw new Error('テキスト応答がありません');
+      const raw = textBlock.text.trim();
+      const stripped = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+      const jsonMatch = stripped.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error(`記事データのパースに失敗しました\n---\n${raw.slice(0, 300)}`);
+      return JSON.parse(jsonMatch[0]).articles || [];
+    }
+
+    if (data.stop_reason === 'tool_use') {
+      // アシスタントの返答（tool_useブロック）をメッセージ履歴に追加
+      messages.push({ role: 'assistant', content: data.content });
+      // tool_resultを返す（web_searchはAnthropicがサーバー側で実行）
+      const toolResults = data.content
+        .filter(b => b.type === 'tool_use')
+        .map(b => ({ type: 'tool_result', tool_use_id: b.id, content: [] }));
+      messages.push({ role: 'user', content: toolResults });
+      continue;
+    }
+
+    throw new Error(`予期しないstop_reason: ${data.stop_reason}`);
+  }
+  throw new Error('検索に時間がかかりすぎています（最大ターン数超過）');
 }
 
 function getApiKeyOrShowError() {
