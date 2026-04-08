@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -7,13 +7,10 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; background: #0a0a0f; color: #e8e6f0; min-height: 100vh; }
-  
+
   header { border-bottom: 0.5px solid #2a2840; padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(10,10,15,0.92); backdrop-filter: blur(12px); z-index: 100; }
   .logo { font-size: 13px; letter-spacing: 0.15em; color: #7b6ef6; font-weight: 500; text-transform: uppercase; }
   .logo span { color: #e8e6f0; }
-  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  .status-text { font-size: 12px; color: #6b6880; }
 
   .controls { padding: 1.25rem 2rem; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 0.5px solid #1a1828; }
   .tag-filter { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -26,11 +23,12 @@
   .spin { display: inline-block; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .rss-section { padding: 0.75rem 2rem; border-bottom: 0.5px solid #1a1828; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .rss-label { font-size: 11px; color: #6b6880; letter-spacing: 0.08em; text-transform: uppercase; }
-  .rss-chip { font-size: 11px; padding: 3px 9px; border-radius: 6px; background: #141220; border: 0.5px solid #2a2840; color: #9896a8; display: flex; align-items: center; gap: 5px; }
-  .rss-chip span { width: 5px; height: 5px; border-radius: 50%; background: #f59e0b; display: inline-block; }
-  .add-rss-btn { font-size: 11px; color: #7b6ef6; border: 0.5px dashed #7b6ef6; background: transparent; border-radius: 6px; padding: 3px 9px; cursor: pointer; font-family: inherit; }
+  .apikey-bar { padding: 0.75rem 2rem; border-bottom: 0.5px solid #1a1828; display: flex; align-items: center; gap: 10px; }
+  .apikey-label { font-size: 11px; color: #6b6880; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+  .apikey-input { flex: 1; max-width: 380px; padding: 5px 10px; background: #0a0a0f; border: 0.5px solid #2a2840; border-radius: 6px; color: #e8e6f0; font-size: 12px; font-family: inherit; }
+  .apikey-input:focus { outline: none; border-color: #7b6ef6; }
+  .apikey-save { padding: 5px 12px; background: #7b6ef6; border: none; border-radius: 6px; color: #fff; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .apikey-status { font-size: 11px; color: #4ade80; }
 
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; padding: 1.5rem 2rem; }
   .card { background: #0f0e1a; border: 0.5px solid #1e1c30; border-radius: 12px; padding: 1.1rem 1.25rem; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
@@ -41,7 +39,7 @@
   .card.history::before { background: linear-gradient(90deg, #38bdf8, #a78bfa); }
   .card.occult::before { background: linear-gradient(90deg, #a78bfa, #ec4899); }
   .card.mixed::before { background: linear-gradient(90deg, #7b6ef6, #38bdf8); }
-  
+
   .card-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; }
   .cat-badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 500; letter-spacing: 0.06em; }
   .cat-badge.science { background: #0a2010; color: #4ade80; border: 0.5px solid #1a4020; }
@@ -53,8 +51,36 @@
   .card-source { font-size: 11px; color: #5a5870; }
   .card-title { font-size: 14px; font-weight: 500; color: #d4d0e8; line-height: 1.5; margin-bottom: 0.5rem; }
   .card-summary { font-size: 12px; color: #7a7890; line-height: 1.6; }
-  .card-link { font-size: 11px; color: #7b6ef6; margin-top: 0.75rem; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
+  .card-link { font-size: 11px; color: #7b6ef6; margin-top: 0.75rem; display: inline-flex; align-items: center; gap: 4px; }
   .card-link:hover { color: #a89fff; }
+
+  /* ブクマ */
+  .bookmark-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; cursor: pointer; padding: 4px; color: #6b6880; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.15s; }
+  .bookmark-btn:hover { color: #7b6ef6; }
+  .bookmark-btn.active { color: #7b6ef6; }
+  .header-bookmark { background: none; border: none; cursor: pointer; color: #6b6880; display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; transition: color 0.15s; font-family: inherit; }
+  .header-bookmark:hover { color: #b0aeff; }
+  .bk-count { font-size: 11px; background: #7b6ef6; color: #fff; border-radius: 999px; padding: 1px 6px; display: none; }
+  .bk-count.visible { display: inline-block; }
+
+  /* ドロワー */
+  .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; }
+  .drawer-overlay.open { display: block; }
+  .drawer { position: fixed; top: 0; right: -420px; width: 420px; max-width: 95vw; height: 100vh; background: #0f0e1a; border-left: 0.5px solid #2a2840; z-index: 301; display: flex; flex-direction: column; transition: right 0.25s cubic-bezier(0.4,0,0.2,1); }
+  .drawer.open { right: 0; }
+  .drawer-header { padding: 1.25rem 1.5rem; border-bottom: 0.5px solid #1e1c30; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .drawer-title { font-size: 14px; font-weight: 500; color: #d4d0e8; display: flex; align-items: center; gap: 8px; }
+  .drawer-close { background: none; border: none; color: #6b6880; cursor: pointer; font-size: 18px; line-height: 1; padding: 4px; border-radius: 4px; }
+  .drawer-close:hover { color: #e8e6f0; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+  .drawer-empty { text-align: center; padding: 3rem 1rem; color: #4a4860; font-size: 13px; }
+  .drawer-card { background: #0a0a0f; border: 0.5px solid #1e1c30; border-radius: 10px; padding: 0.9rem 1rem; margin-bottom: 10px; cursor: pointer; transition: border-color 0.15s; position: relative; }
+  .drawer-card:hover { border-color: #3a3660; }
+  .drawer-card-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 0.4rem; }
+  .drawer-card-title { font-size: 13px; font-weight: 500; color: #d4d0e8; line-height: 1.45; margin-bottom: 0.3rem; }
+  .drawer-card-summary { font-size: 11px; color: #7a7890; line-height: 1.5; }
+  .drawer-card-remove { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #3a3860; cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 4px; border-radius: 4px; }
+  .drawer-card-remove:hover { color: #f87171; }
 
   .empty { text-align: center; padding: 4rem 2rem; color: #4a4860; }
   .empty-icon { font-size: 32px; margin-bottom: 1rem; opacity: 0.4; }
@@ -66,36 +92,33 @@
   .skel-bar { background: #1e1c30; border-radius: 4px; margin-bottom: 10px; animation: shimmer 1.5s infinite; }
   @keyframes shimmer { 0%,100%{opacity:0.5} 50%{opacity:1} }
 
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; padding: 2rem; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: #0f0e1a; border: 0.5px solid #2a2840; border-radius: 16px; padding: 1.5rem; max-width: 520px; width: 100%; }
-  .modal h3 { font-size: 15px; font-weight: 500; margin-bottom: 1rem; color: #d4d0e8; }
-  .modal input { width: 100%; padding: 8px 12px; background: #0a0a0f; border: 0.5px solid #2a2840; border-radius: 8px; color: #e8e6f0; font-size: 13px; font-family: inherit; margin-bottom: 10px; }
-  .modal input:focus { outline: none; border-color: #7b6ef6; }
-  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 0.5rem; }
-  .btn-cancel { padding: 7px 14px; background: transparent; border: 0.5px solid #2a2840; border-radius: 8px; color: #9896a8; font-size: 13px; cursor: pointer; font-family: inherit; }
-  .btn-add { padding: 7px 14px; background: #7b6ef6; border: none; border-radius: 8px; color: #fff; font-size: 13px; cursor: pointer; font-family: inherit; }
-
   .error-banner { margin: 1rem 2rem; padding: 0.75rem 1rem; background: #1a0808; border: 0.5px solid #3a1010; border-radius: 8px; color: #f87171; font-size: 13px; }
+  .error-detail { margin-top: 8px; padding: 8px 10px; background: #100606; border-radius: 6px; font-size: 11px; color: #a87070; font-family: monospace; white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
+  .error-detail summary { cursor: pointer; color: #f87171; font-size: 12px; font-family: inherit; }
+
+  /* file:// 警告バナー */
+  .file-warn { margin: 1rem 2rem 0; padding: 1rem 1.25rem; background: #0d1020; border: 1px solid #4a6fa5; border-radius: 10px; color: #a0bce0; font-size: 13px; line-height: 1.7; }
+  .file-warn strong { color: #e8e6f0; display: block; margin-bottom: 6px; font-size: 14px; }
+  .file-warn code { background: #1a2235; padding: 2px 7px; border-radius: 4px; font-size: 12px; color: #7eb8f7; font-family: 'Cascadia Code', 'Consolas', monospace; user-select: all; }
+  .file-warn ol { padding-left: 1.25rem; margin-top: 6px; }
+  .file-warn li { margin-bottom: 4px; }
+  .file-warn-badge { display: inline-block; background: #e67e22; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
 
   .load-more-bar { padding: 0 2rem 2.5rem; display: flex; justify-content: center; }
   .load-more-btn { padding: 9px 32px; border-radius: 8px; background: transparent; border: 0.5px solid #3a3660; color: #9896a8; font-size: 13px; cursor: pointer; font-family: inherit; letter-spacing: 0.04em; transition: all 0.15s; display: flex; align-items: center; gap: 7px; }
   .load-more-btn:hover { border-color: #7b6ef6; color: #b0aeff; }
   .load-more-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .apikey-bar { padding: 0.75rem 2rem; border-bottom: 0.5px solid #1a1828; display: flex; align-items: center; gap: 10px; }
-  .apikey-label { font-size: 11px; color: #6b6880; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
-  .apikey-input { flex: 1; max-width: 380px; padding: 5px 10px; background: #0a0a0f; border: 0.5px solid #2a2840; border-radius: 6px; color: #e8e6f0; font-size: 12px; font-family: inherit; }
-  .apikey-input:focus { outline: none; border-color: #7b6ef6; }
-  .apikey-save { padding: 5px 12px; background: #7b6ef6; border: none; border-radius: 6px; color: #fff; font-size: 12px; cursor: pointer; font-family: inherit; }
-  .apikey-status { font-size: 11px; color: #4ade80; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">実在研究所 <span>NEWS</span></div>
-  <div class="status-text"><span class="status-dot"></span>科学・哲学 日次フィード</div>
+  <div class="logo">実在研究所 <span>科学・哲学NEWS</span></div>
+  <button class="header-bookmark" id="headerBookmark" onclick="openDrawer()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    後で読む
+    <span class="bk-count" id="bkCount"></span>
+  </button>
 </header>
 
 <div class="controls">
@@ -113,48 +136,117 @@
 </div>
 
 <div class="apikey-bar">
-  <span class="apikey-label">API KEY</span>
-  <input type="password" class="apikey-input" id="apikeyInput" placeholder="sk-ant-api03-..." />
+  <span class="apikey-label">BRAVE API KEY</span>
+  <input type="password" class="apikey-input" id="apikeyInput" placeholder="BSA..." />
   <button class="apikey-save" onclick="saveApiKey()">保存</button>
   <span class="apikey-status" id="apikeyStatus"></span>
 </div>
 
-<div class="rss-section">
-  <span class="rss-label">RSS</span>
-  <div id="rssChips"></div>
-  <button class="add-rss-btn" onclick="openModal()">+ 追加</button>
+<div id="fileWarn" style="display:none" class="file-warn">
+  <strong><span class="file-warn-badge">CORS制限</span>このファイルは <code>file://</code> で開かれています — 外部APIに接続できません</strong>
+  <ol>
+    <li><strong>推奨:</strong> VS Code でこのファイルを右クリック → <strong>「Open with Live Server」</strong>（Live Server 拡張機能が必要）</li>
+    <li>または PowerShell / ターミナルで以下を実行し、<a href="http://localhost:8080" target="_blank" style="color:#7eb8f7">http://localhost:8080</a> を開く:<br><code>cd "d:\ampa_migra\C\UNITARY\ショート動画\ツール\sci_phi_news_app" ; python -m http.server 8080</code></li>
+    <li>Python未インストールの場合: <code>npx serve .</code>（Node.js必要）</li>
+  </ol>
 </div>
 
-<div id="errorBanner" style="display:none" class="error-banner"></div>
+<div id="errorBanner" style="display:none" class="error-banner">
+  <div id="errorMsg"></div>
+  <details id="errorDetail" style="display:none">
+    <summary>▶ 詳細を表示</summary>
+    <div class="error-detail" id="errorDetailBody"></div>
+  </details>
+</div>
 <div id="content"></div>
 <div class="load-more-bar" id="loadMoreBar" style="display:none">
   <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreArticles()">さらに表示</button>
 </div>
 
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <h3>RSSフィードを追加</h3>
-    <input type="text" id="rssUrl" placeholder="https://example.com/feed.xml" />
-    <input type="text" id="rssName" placeholder="サイト名（例: NHK科学）" />
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
-      <button class="btn-add" onclick="addRss()">追加</button>
+<!-- ブクマドロワー -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="#7b6ef6" stroke="#7b6ef6" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      後で読む
     </div>
+    <button class="drawer-close" onclick="closeDrawer()">×</button>
   </div>
+  <div class="drawer-body" id="drawerBody"></div>
 </div>
 
 <script>
-const DEFAULT_RSS = [
-  { name: 'NHK科学文化', url: 'https://www3.nhk.or.jp/rss/news/cat3.xml' },
-  { name: '朝日科学', url: 'https://www.asahi.com/rss/science.rdf' },
-  { name: 'ナショジオ', url: 'https://natgeo.nikkeibp.co.jp/rss/news.rdf' },
-];
+// カテゴリ → Brave Search クエリのマッピング
+const CAT_QUERIES = {
+  all:        ['科学 最新ニュース', '哲学 思想 ニュース', '神秘 オカルト ニュース'],
+  science:    ['科学 宇宙 AI 最新ニュース', '物理 生命科学 発見 2026'],
+  philosophy: ['哲学 倫理 思想 ニュース', '認知科学 意識 研究 2026'],
+  history:    ['科学史 思想史 発見 ニュース', '文明史 歴史 研究 2026'],
+  occult:     ['神秘主義 オカルト ニュース', '宗教思想 精神世界 スピリチュアル 2026'],
+};
 
-let rssFeeds = [...DEFAULT_RSS];
 let articles = [];
 let activeFilter = 'all';
+let currentPage = 1;
 let loading = false;
+let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
 
+// --- ブクマ ---
+function saveBookmarks() { localStorage.setItem('bookmarks', JSON.stringify(bookmarks)); }
+function isBookmarked(a) { return bookmarks.some(b => b.title === a.title); }
+
+function toggleBookmark(a, e) {
+  e.stopPropagation();
+  if (isBookmarked(a)) { bookmarks = bookmarks.filter(b => b.title !== a.title); }
+  else { bookmarks.push(a); }
+  saveBookmarks(); updateBkCount(); renderCards();
+  if (document.getElementById('drawer').classList.contains('open')) renderDrawer();
+}
+
+function updateBkCount() {
+  const el = document.getElementById('bkCount');
+  if (bookmarks.length > 0) { el.textContent = bookmarks.length; el.classList.add('visible'); }
+  else { el.classList.remove('visible'); }
+}
+
+function openDrawer() {
+  renderDrawer();
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderDrawer() {
+  const el = document.getElementById('drawerBody');
+  if (!bookmarks.length) {
+    el.innerHTML = '<div class="drawer-empty">まだ登録がありません<br>記事カードのブクマアイコンをタップしてください</div>';
+    return;
+  }
+  el.innerHTML = bookmarks.map((a, i) => `
+    <div class="drawer-card" onclick="window.open('${a.url.replace(/'/g, '%27')}', '_blank', 'noopener,noreferrer')">
+      <button class="drawer-card-remove" title="削除" onclick="event.stopPropagation();removeBookmark(${i})">&#x2715;</button>
+      <div class="drawer-card-meta">
+        <span class="cat-badge ${a.category}" style="font-size:9px">${getCatLabel(a.category)}</span>
+        <span style="font-size:11px;color:#5a5870">${a.source}</span>
+        <span style="font-size:11px;color:#4a4860;margin-left:auto">${a.date}</span>
+      </div>
+      <div class="drawer-card-title">${a.title}</div>
+      <div class="drawer-card-summary">${a.summary}</div>
+    </div>`).join('');
+}
+
+function removeBookmark(i) {
+  bookmarks.splice(i, 1); saveBookmarks(); updateBkCount(); renderDrawer(); renderCards();
+}
+
+// --- UI helpers ---
 function setLoadMoreVisible(visible) {
   document.getElementById('loadMoreBar').style.display = visible ? 'flex' : 'none';
 }
@@ -162,35 +254,15 @@ function setLoadMoreVisible(visible) {
 function saveApiKey() {
   const key = document.getElementById('apikeyInput').value.trim();
   if (!key) return;
-  localStorage.setItem('anthropic_api_key', key);
+  localStorage.setItem('brave_api_key', key);
   document.getElementById('apikeyStatus').textContent = '✓ 保存済み';
   setTimeout(() => { document.getElementById('apikeyStatus').textContent = ''; }, 2000);
 }
 
 function loadApiKey() {
-  const key = localStorage.getItem('anthropic_api_key') || '';
-  if (key) {
-    document.getElementById('apikeyInput').value = key;
-    document.getElementById('apikeyStatus').textContent = '✓ 保存済み';
-  }
+  const key = localStorage.getItem('brave_api_key') || '';
+  if (key) { document.getElementById('apikeyInput').value = key; document.getElementById('apikeyStatus').textContent = '✓ 保存済み'; }
   return key;
-}
-
-function renderRssChips() {
-  const el = document.getElementById('rssChips');
-  el.innerHTML = rssFeeds.map(f => `<div class="rss-chip"><span></span>${f.name}</div>`).join('');
-}
-
-function openModal() { document.getElementById('modal').classList.add('open'); }
-function closeModal() { document.getElementById('modal').classList.remove('open'); document.getElementById('rssUrl').value=''; document.getElementById('rssName').value=''; }
-
-function addRss() {
-  const url = document.getElementById('rssUrl').value.trim();
-  const name = document.getElementById('rssName').value.trim() || 'カスタムフィード';
-  if (!url) return;
-  rssFeeds.push({ name, url });
-  renderRssChips();
-  closeModal();
 }
 
 document.getElementById('tagFilter').addEventListener('click', e => {
@@ -199,27 +271,152 @@ document.getElementById('tagFilter').addEventListener('click', e => {
   activeFilter = btn.dataset.cat;
   document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  renderCards();
+  fetchArticles();
 });
 
 function getCatLabel(cat) {
   return { science:'科学', philosophy:'哲学', history:'科学史', occult:'神秘・オカルト', mixed:'複合' }[cat] || cat;
 }
 
-function articleUrl(a) {
-  if (a.url) return a.url;
-  return 'https://news.google.com/search?q=' + encodeURIComponent(a.title + ' ' + a.source) + '&hl=ja&gl=JP&ceid=JP:ja';
+function guessCategory(title, desc) {
+  const text = (title + ' ' + desc).toLowerCase();
+  if (/哲学|倫理|思想|認知|意識|形而上/.test(text)) return 'philosophy';
+  if (/科学史|思想史|文明史|歴史|古代|中世/.test(text)) return 'history';
+  if (/神秘|オカルト|錬金|宗教|精神世界|スピリチュアル|陰謀|予言/.test(text)) return 'occult';
+  if (/科学|宇宙|ai|物理|生命|数学|研究|発見|技術/.test(text)) return 'science';
+  return 'mixed';
 }
 
+// --- Brave Search API ---
+const BRAVE_ENDPOINT = 'https://api.search.brave.com/res/v1/web/search';
+
+// 接続先リスト: 直接 → corsproxy.io → allorigins.win の順に自動フォールバック
+const PROXY_BUILDERS = [
+  url => ({ url,                                                          label: '直接' }),
+  url => ({ url: `https://corsproxy.io/?url=${encodeURIComponent(url)}`, label: 'corsproxy.io' }),
+  url => ({ url: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, label: 'allorigins.win' }),
+];
+
+function showError(msg, detail) {
+  const banner = document.getElementById('errorBanner');
+  banner.style.display = 'block';
+  document.getElementById('errorMsg').textContent = msg;
+  const detailEl = document.getElementById('errorDetail');
+  const detailBody = document.getElementById('errorDetailBody');
+  if (detail) {
+    detailEl.style.display = '';
+    detailBody.textContent = detail;
+  } else {
+    detailEl.style.display = 'none';
+  }
+  console.error('[sci_phi_news]', msg, '\n', detail || '');
+}
+
+async function braveSearch(query, apiKey, offset = 0) {
+  const params = new URLSearchParams({
+    q: query,
+    count: '10',
+    offset: String(offset),
+    country: 'jp',
+    search_lang: 'jp',
+    ui_lang: 'ja-JP',
+    text_decorations: '0',
+    result_filter: 'web,news',
+  });
+  const targetUrl = `${BRAVE_ENDPOINT}?${params}`;
+
+  const networkErrors = [];
+  for (const buildProxy of PROXY_BUILDERS) {
+    const { url: requestUrl, label } = buildProxy(targetUrl);
+    console.log(`[braveSearch] 試行 (${label}):`, requestUrl.slice(0, 120));
+    let res;
+    try {
+      res = await fetch(requestUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'X-Subscription-Token': apiKey,
+        }
+      });
+    } catch (netErr) {
+      console.warn(`[braveSearch] (${label}) ネットワークエラー:`, netErr.message);
+      networkErrors.push(`${label}: ${netErr.message}`);
+      continue; // 次のプロキシへ
+    }
+
+    if (!res.ok) {
+      const bodyText = await res.text().catch(() => '');
+      let errMsg = `Brave API error (HTTP ${res.status} ${res.statusText})`;
+      try { const j = JSON.parse(bodyText); errMsg = j.error?.message || j.message || errMsg; } catch(_) {}
+      if (res.status === 401) errMsg = 'APIキーが無効です (401 Unauthorized)';
+      if (res.status === 429) errMsg = 'レートリミット超過 (429 Too Many Requests)。しばらく待ってから再試行してください。';
+      if (res.status === 422) errMsg = 'リクエストパラメータが無効 (422)。';
+      const detail = `経由: ${label}\nリクエスト先: ${requestUrl}\nHTTPステータス: ${res.status} ${res.statusText}\nレスポンス: ${bodyText.slice(0, 400)}`;
+      throw Object.assign(new Error(errMsg), { detailInfo: detail });
+    }
+    console.log(`[braveSearch] 成功 (${label})`);
+    return res.json();
+  }
+
+  // 全プロキシ失敗
+  const detail = [
+    '全エンドポイントへの接続失敗:',
+    ...networkErrors.map((e, i) => `  ${i+1}. ${e}`),
+    '',
+    '考えられる原因:',
+    '  1) ネットワーク未接続',
+    '  2) アンチウイルス/ファイアウォールが外部HTTPSをブロック',
+    '  3) ブラウザが file:// からの外部接続を制限（Chrome設定を確認）',
+    '',
+    `APIキー先頭4文字: ${apiKey.slice(0, 4)}...`,
+  ].join('\n');
+  throw Object.assign(new Error('ネットワークエラー: すべての接続先に失敗しました'), { detailInfo: detail });
+}
+
+function braveResultsToArticles(data, category) {
+  const results = [
+    ...(data.news?.results || []),
+    ...(data.web?.results || []),
+  ];
+  return results.slice(0, 10).map(r => {
+    const date = r.page_age
+      ? new Date(r.page_age).toLocaleDateString('ja-JP', { year:'numeric', month:'2-digit', day:'2-digit' })
+      : new Date().toLocaleDateString('ja-JP', { year:'numeric', month:'2-digit', day:'2-digit' });
+    const source = r.meta_url?.hostname?.replace(/^www\./, '') || r.url?.match(/https?:\/\/([^/]+)/)?.[1] || '不明';
+    const cat = category === 'all' ? guessCategory(r.title || '', r.description || '') : category;
+    return {
+      title: r.title || '',
+      summary: r.description || '',
+      category: cat,
+      source,
+      date,
+      url: r.url || '',
+    };
+  }).filter(a => a.title);
+}
+
+const SKELETON_HTML = `<div class="loading-grid">${[...Array(6)].map(() => `
+  <div class="skeleton">
+    <div class="skel-bar" style="height:14px;width:60%"></div>
+    <div class="skel-bar" style="height:16px;width:90%"></div>
+    <div class="skel-bar" style="height:12px;width:80%"></div>
+    <div class="skel-bar" style="height:12px;width:70%"></div>
+  </div>`).join('')}</div>`;
+
+function showSkeleton() { document.getElementById('content').innerHTML = SKELETON_HTML; }
+
 function renderCards() {
-  const filtered = activeFilter === 'all' ? articles : articles.filter(a => a.category === activeFilter);
   const el = document.getElementById('content');
-  if (!filtered.length) {
+  if (!articles.length) {
     el.innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">記事がありません</div><div class="empty-sub">「記事を取得」ボタンで最新記事を検索します</div></div>`;
     return;
   }
-  el.innerHTML = `<div class="grid">${filtered.map((a, i) => `
+  el.innerHTML = `<div class="grid">${articles.map((a, i) => `
     <div class="card ${a.category}" data-idx="${i}">
+      <button class="bookmark-btn${isBookmarked(a) ? ' active' : ''}" title="後で読む" onclick="toggleBookmark(articles[${i}], event)">
+        ${isBookmarked(a)
+          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'
+          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'}
+      </button>
       <div class="card-meta">
         <span class="cat-badge ${a.category}">${getCatLabel(a.category)}</span>
         <span class="card-source">${a.source}</span>
@@ -227,124 +424,30 @@ function renderCards() {
       </div>
       <div class="card-title">${a.title}</div>
       <div class="card-summary">${a.summary}</div>
-      <span class="card-link">${a.url ? '記事を読む →' : '関連記事を検索 →'}</span>
-    </div>
-  `).join('')}</div>`;
+      <span class="card-link">記事を読む →</span>
+    </div>`).join('')}</div>`;
 
   el.querySelector('.grid').addEventListener('click', e => {
+    if (e.target.closest('.bookmark-btn')) return;
     const card = e.target.closest('.card[data-idx]');
     if (!card) return;
-    const a = filtered[parseInt(card.dataset.idx, 10)];
-    window.open(articleUrl(a), '_blank', 'noopener,noreferrer');
+    const a = articles[parseInt(card.dataset.idx, 10)];
+    if (a.url) window.open(a.url, '_blank', 'noopener,noreferrer');
   });
 }
 
-const SKELETON_HTML = `<div class="loading-grid">${[...Array(6)].map(()=>`
-    <div class="skeleton">
-      <div class="skel-bar" style="height:14px;width:60%"></div>
-      <div class="skel-bar" style="height:16px;width:90%"></div>
-      <div class="skel-bar" style="height:12px;width:80%"></div>
-      <div class="skel-bar" style="height:12px;width:70%"></div>
-    </div>
-  `).join('')}</div>`;
-
-function showSkeleton() {
-  document.getElementById('content').innerHTML = SKELETON_HTML;
-}
-
-function buildPrompt(excludeTitles = []) {
-  const today = new Date().toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
-  const excludeNote = excludeTitles.length
-    ? `\n\n以下の記事はすでに表示済みです。重複しないよう別の記事を選んでください：\n${excludeTitles.map(t => `- ${t}`).join('\n')}`
-    : '';
-  return `あなたは科学・哲学・科学史・神秘思想の日本語記事キュレーターです。
-
-今日（${today}）の科学・哲学・科学史・神秘/オカルト関連の最新日本語ニュースや記事を10件探してください。
-
-対象カテゴリ:
-- science（科学・宇宙・生命科学・AI・物理・数学）
-- philosophy（哲学・倫理・思想・認知科学）
-- history（科学史・思想史・文明史）
-- occult（神秘主義・錬金術・オカルト・宗教思想・ニューエイジ）
-- mixed（複数カテゴリにまたがる）${excludeNote}
-
-以下のJSON形式のみで返答してください（コードブロック・説明文は不要。最初の文字は { ）：
-{
-  "articles": [
-    {
-      "title": "記事タイトル",
-      "summary": "80文字程度の要約",
-      "category": "science|philosophy|history|occult|mixed",
-      "source": "媒体名",
-      "date": "YYYY/MM/DD",
-      "url": "記事の正確なURL"
-    }
-  ]
-}`;
-}
-
-async function callAPI(prompt, apiKey) {
-  const messages = [{ role: 'user', content: prompt }];
-  const MAX_TURNS = 10;
-
-  for (let turn = 0; turn < MAX_TURNS; turn++) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'web-search-2025-03-05',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-opus-4-5',
-        max_tokens: 5000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages
-      })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || `API error (${res.status})`);
-
-    if (data.stop_reason === 'end_turn') {
-      const textBlock = data.content?.find(b => b.type === 'text');
-      if (!textBlock) throw new Error('テキスト応答がありません');
-      const raw = textBlock.text.trim();
-      const stripped = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-      const jsonMatch = stripped.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error(`記事データのパースに失敗しました\n---\n${raw.slice(0, 300)}`);
-      return JSON.parse(jsonMatch[0]).articles || [];
-    }
-
-    if (data.stop_reason === 'tool_use') {
-      // アシスタントの返答（tool_useブロック）をメッセージ履歴に追加
-      messages.push({ role: 'assistant', content: data.content });
-      // tool_resultを返す（web_searchはAnthropicがサーバー側で実行）
-      const toolResults = data.content
-        .filter(b => b.type === 'tool_use')
-        .map(b => ({ type: 'tool_result', tool_use_id: b.id, content: [] }));
-      messages.push({ role: 'user', content: toolResults });
-      continue;
-    }
-
-    throw new Error(`予期しないstop_reason: ${data.stop_reason}`);
-  }
-  throw new Error('検索に時間がかかりすぎています（最大ターン数超過）');
-}
-
 function getApiKeyOrShowError() {
-  const apiKey = loadApiKey();
-  if (!apiKey) {
-    document.getElementById('errorBanner').style.display = 'block';
-    document.getElementById('errorBanner').textContent = 'エラー: APIキーが未設定です。上の「API KEY」欄にAnthropicのAPIキーを入力して「保存」してください。';
+  const key = loadApiKey();
+  if (!key) {
+    showError('エラー: Brave Search APIキーが未設定です。上の「BRAVE API KEY」欄にキーを入力して「保存」してください。', null);
   }
-  return apiKey;
+  return key;
 }
 
 async function fetchArticles() {
   if (loading) return;
   loading = true;
+  currentPage = 1;
   const btn = document.getElementById('fetchBtn');
   btn.disabled = true;
   btn.innerHTML = `<span class="spin">↻</span> 取得中...`;
@@ -355,23 +458,24 @@ async function fetchArticles() {
   const apiKey = getApiKeyOrShowError();
   if (!apiKey) {
     document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">APIキーを設定してください</div></div>`;
-    loading = false;
-    btn.disabled = false;
+    loading = false; btn.disabled = false;
     btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> 記事を取得`;
     return;
   }
 
   try {
-    articles = await callAPI(buildPrompt(), apiKey);
+    const queries = CAT_QUERIES[activeFilter] || CAT_QUERIES.all;
+    const results = await Promise.all(queries.map(q => braveSearch(q, apiKey, 0)));
+    const merged = results.flatMap(d => braveResultsToArticles(d, activeFilter));
+    const seen = new Set();
+    articles = merged.filter(a => { if (!a.url || seen.has(a.url)) return false; seen.add(a.url); return true; });
     renderCards();
     setLoadMoreVisible(articles.length > 0);
   } catch (err) {
-    document.getElementById('errorBanner').style.display = 'block';
-    document.getElementById('errorBanner').textContent = 'エラー: ' + err.message;
+    showError('エラー: ' + err.message, err.detailInfo || null);
     document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">取得に失敗しました</div><div class="empty-sub">もう一度お試しください</div></div>`;
   } finally {
-    loading = false;
-    btn.disabled = false;
+    loading = false; btn.disabled = false;
     btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> 記事を取得`;
   }
 }
@@ -379,37 +483,40 @@ async function fetchArticles() {
 async function loadMoreArticles() {
   if (loading) return;
   loading = true;
+  currentPage++;
   const btn = document.getElementById('loadMoreBtn');
   btn.disabled = true;
   btn.innerHTML = `<span class="spin">↻</span> 読み込み中...`;
   document.getElementById('errorBanner').style.display = 'none';
 
   const apiKey = getApiKeyOrShowError();
-  if (!apiKey) {
-    loading = false;
-    btn.disabled = false;
-    btn.innerHTML = 'さらに表示';
-    return;
-  }
+  if (!apiKey) { loading = false; btn.disabled = false; btn.innerHTML = 'さらに表示'; return; }
 
   try {
-    const excludeTitles = articles.map(a => a.title);
-    const newArticles = await callAPI(buildPrompt(excludeTitles), apiKey);
+    const queries = CAT_QUERIES[activeFilter] || CAT_QUERIES.all;
+    const offset = (currentPage - 1) * 10;
+    const results = await Promise.all(queries.map(q => braveSearch(q, apiKey, offset)));
+    const merged = results.flatMap(d => braveResultsToArticles(d, activeFilter));
+    const existingUrls = new Set(articles.map(a => a.url));
+    const newArticles = merged.filter(a => a.url && !existingUrls.has(a.url));
     articles = articles.concat(newArticles);
     renderCards();
   } catch (err) {
-    document.getElementById('errorBanner').style.display = 'block';
-    document.getElementById('errorBanner').textContent = 'エラー: ' + err.message;
+    showError('エラー: ' + err.message, err.detailInfo || null);
   } finally {
-    loading = false;
-    btn.disabled = false;
-    btn.innerHTML = 'さらに表示';
+    loading = false; btn.disabled = false; btn.innerHTML = 'さらに表示';
   }
 }
 
-renderRssChips();
 loadApiKey();
-document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">「記事を取得」で今日のフィードを読み込みます</div><div class="empty-sub">Claude Web検索 + RSSフィード</div></div>`;
+updateBkCount();
+
+// file:// で開かれている場合は警告を表示
+if (location.protocol === 'file:') {
+  document.getElementById('fileWarn').style.display = 'block';
+}
+
+document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">「記事を取得」で今日のフィードを読み込みます</div><div class="empty-sub">Brave Search — リアルタイム検索</div></div>`;
 </script>
 </body>
 </html>
