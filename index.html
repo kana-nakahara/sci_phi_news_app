@@ -8,7 +8,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; background: #0a0a0f; color: #e8e6f0; min-height: 100vh; }
 
-  header { border-bottom: 0.5px solid #2a2840; padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(10,10,15,0.92); backdrop-filter: blur(12px); z-index: 100; }
+  header { border-bottom: 0.5px solid #2a2840; padding: 1.25rem 2rem; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; background: rgba(10,10,15,0.92); backdrop-filter: blur(12px); z-index: 100; }
   .logo { font-size: 13px; letter-spacing: 0.15em; color: #7b6ef6; font-weight: 500; text-transform: uppercase; }
   .logo span { color: #e8e6f0; }
 
@@ -47,7 +47,7 @@
   .cat-badge.history { background: #080f20; color: #38bdf8; border: 0.5px solid #102040; }
   .cat-badge.occult { background: #180820; color: #a78bfa; border: 0.5px solid #301050; }
   .cat-badge.mixed { background: #0c0818; color: #c084fc; border: 0.5px solid #201030; }
-  .card-date { font-size: 11px; color: #4a4860; margin-left: auto; }
+  .card-date { font-size: 11px; color: #4a4860; }
   .card-source { font-size: 11px; color: #5a5870; }
   .card-title { font-size: 14px; font-weight: 500; color: #d4d0e8; line-height: 1.5; margin-bottom: 0.5rem; }
   .card-summary { font-size: 12px; color: #7a7890; line-height: 1.6; }
@@ -55,13 +55,23 @@
   .card-link:hover { color: #a89fff; }
 
   /* ブクマ */
-  .bookmark-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; cursor: pointer; padding: 4px; color: #6b6880; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.15s; }
+  .read-btn { position: absolute; top: 10px; right: 62px; background: none; border: none; cursor: default; padding: 4px; color: #3a3860; display: flex; align-items: center; justify-content: center; border-radius: 6px; pointer-events: none; }
+  .read-btn.active { color: #5a9ef0; }
+  .bookmark-btn { position: absolute; top: 10px; right: 36px; background: none; border: none; cursor: pointer; padding: 4px; color: #6b6880; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.15s; }
   .bookmark-btn:hover { color: #7b6ef6; }
   .bookmark-btn.active { color: #7b6ef6; }
+  /* お気に入り */
+  .fav-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; cursor: pointer; padding: 4px; color: #6b6880; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.15s; }
+  .fav-btn:hover { color: #f59e0b; }
+  .fav-btn.active { color: #f59e0b; }
   .header-bookmark { background: none; border: none; cursor: pointer; color: #6b6880; display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; transition: color 0.15s; font-family: inherit; }
   .header-bookmark:hover { color: #b0aeff; }
   .bk-count { font-size: 11px; background: #7b6ef6; color: #fff; border-radius: 999px; padding: 1px 6px; display: none; }
   .bk-count.visible { display: inline-block; }
+  .header-fav { background: none; border: none; cursor: pointer; color: #6b6880; display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; transition: color 0.15s; font-family: inherit; }
+  .header-fav:hover { color: #fbbf24; }
+  .fav-count { font-size: 11px; background: #f59e0b; color: #fff; border-radius: 999px; padding: 1px 6px; display: none; }
+  .fav-count.visible { display: inline-block; }
 
   /* ドロワー */
   .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; }
@@ -74,8 +84,14 @@
   .drawer-close:hover { color: #e8e6f0; }
   .drawer-body { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
   .drawer-empty { text-align: center; padding: 3rem 1rem; color: #4a4860; font-size: 13px; }
-  .drawer-card { background: #0a0a0f; border: 0.5px solid #1e1c30; border-radius: 10px; padding: 0.9rem 1rem; margin-bottom: 10px; cursor: pointer; transition: border-color 0.15s; position: relative; }
+  .drawer-card { background: #0a0a0f; border: 0.5px solid #1e1c30; border-radius: 10px; padding: 0.9rem 1rem; margin-bottom: 10px; cursor: pointer; transition: border-color 0.15s, opacity 0.15s; position: relative; display: flex; align-items: flex-start; gap: 8px; }
   .drawer-card:hover { border-color: #3a3660; }
+  .drawer-card.dragging { opacity: 0.3; }
+  .drawer-card.drag-over { border-color: #7b6ef6 !important; background: #120e28; }
+  .drag-handle { cursor: grab; color: #3a3860; font-size: 17px; flex-shrink: 0; user-select: none; padding-top: 2px; line-height: 1; transition: color 0.15s; }
+  .drag-handle:hover { color: #6b6880; }
+  .drag-handle:active { cursor: grabbing; }
+  .drawer-card-content { flex: 1; min-width: 0; }
   .drawer-card-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 0.4rem; }
   .drawer-card-title { font-size: 13px; font-weight: 500; color: #d4d0e8; line-height: 1.45; margin-bottom: 0.3rem; }
   .drawer-card-summary { font-size: 11px; color: #7a7890; line-height: 1.5; }
@@ -109,11 +125,16 @@
 
 <header>
   <div class="logo">実在研究所 <span>科学・哲学NEWS</span></div>
-  <button class="header-bookmark" id="headerBookmark" onclick="openDrawer()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-    後で読む
-    <span class="bk-count" id="bkCount"></span>
-  </button>
+  <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+    <button class="header-bookmark" id="headerBookmark" onclick="openDrawer()" title="後で読む">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      <span class="bk-count" id="bkCount"></span>
+    </button>
+    <button class="header-fav" id="headerFav" onclick="openFavDrawer()" title="お気に入り">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span class="fav-count" id="favCount"></span>
+    </button>
+  </div>
 </header>
 
 <div class="controls">
@@ -168,6 +189,19 @@
   <div class="drawer-body" id="drawerBody"></div>
 </div>
 
+<!-- お気に入りドロワー -->
+<div class="drawer-overlay" id="favDrawerOverlay" onclick="closeFavDrawer()"></div>
+<div class="drawer" id="favDrawer">
+  <div class="drawer-header">
+    <div class="drawer-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      お気に入り
+    </div>
+    <button class="drawer-close" onclick="closeFavDrawer()">×</button>
+  </div>
+  <div class="drawer-body" id="favDrawerBody"></div>
+</div>
+
 <script>
 // カテゴリ → Brave Search クエリのマッピング
 const CAT_QUERIES = {
@@ -182,6 +216,10 @@ let articles = [];
 let activeFilter = 'all';
 let loading = false;
 let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+let readUrls = new Set(JSON.parse(localStorage.getItem('read_urls') || '[]'));
+function saveReadUrls() { try { localStorage.setItem('read_urls', JSON.stringify([...readUrls])); } catch(e) {} }
+function isRead(a) { return readUrls.has(a.url); }
 
 // --- 記事キャッシュ (localStorage) ---
 const ARTICLES_KEY = 'cached_articles';
@@ -230,6 +268,7 @@ function openDrawer() {
   document.getElementById('drawer').classList.add('open');
   document.getElementById('drawerOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  initSortable('drawerBody', () => bookmarks, saveBookmarks, () => { renderDrawer(); renderCards(); });
 }
 
 function closeDrawer() {
@@ -245,20 +284,131 @@ function renderDrawer() {
     return;
   }
   el.innerHTML = bookmarks.map((a, i) => `
-    <div class="drawer-card" onclick="window.open('${a.url.replace(/'/g, '%27')}', '_blank', 'noopener,noreferrer')">
-      <button class="drawer-card-remove" title="削除" onclick="event.stopPropagation();removeBookmark(${i})">&#x2715;</button>
-      <div class="drawer-card-meta">
-        <span class="cat-badge ${a.category}" style="font-size:9px">${getCatLabel(a.category)}</span>
-        <span style="font-size:11px;color:#5a5870">${a.source}</span>
-        <span style="font-size:11px;color:#4a4860;margin-left:auto">${a.date}</span>
+    <div class="drawer-card" draggable="true" data-idx="${i}">
+      <span class="drag-handle" title="ドラッグして並び替え">☰</span>
+      <div class="drawer-card-content">
+        <button class="drawer-card-remove" title="削除" onclick="event.stopPropagation();removeBookmark(${i})">&#x2715;</button>
+        <div class="drawer-card-meta">
+          <span class="cat-badge ${a.category}" style="font-size:9px">${getCatLabel(a.category)}</span>
+          <span style="font-size:11px;color:#5a5870">${a.source}</span>
+          <span style="font-size:11px;color:#4a4860;margin-left:auto">${a.date}</span>
+        </div>
+        <div class="drawer-card-title">${a.title}</div>
+        <div class="drawer-card-summary">${a.summary}</div>
       </div>
-      <div class="drawer-card-title">${a.title}</div>
-      <div class="drawer-card-summary">${a.summary}</div>
     </div>`).join('');
 }
 
 function removeBookmark(i) {
   bookmarks.splice(i, 1); saveBookmarks(); updateBkCount(); renderDrawer(); renderCards();
+}
+
+// --- お気に入り ---
+function saveFavorites() { localStorage.setItem('favorites', JSON.stringify(favorites)); }
+function isFavorited(a) { return favorites.some(f => f.title === a.title); }
+
+function toggleFavorite(a, e) {
+  e.stopPropagation();
+  if (isFavorited(a)) { favorites = favorites.filter(f => f.title !== a.title); }
+  else { favorites.push(a); }
+  saveFavorites(); updateFavCount(); renderCards();
+  if (document.getElementById('favDrawer').classList.contains('open')) renderFavDrawer();
+}
+
+function updateFavCount() {
+  const el = document.getElementById('favCount');
+  if (favorites.length > 0) { el.textContent = favorites.length; el.classList.add('visible'); }
+  else { el.classList.remove('visible'); }
+}
+
+function openFavDrawer() {
+  renderFavDrawer();
+  document.getElementById('favDrawer').classList.add('open');
+  document.getElementById('favDrawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  initSortable('favDrawerBody', () => favorites, saveFavorites, () => { renderFavDrawer(); renderCards(); });
+}
+
+function closeFavDrawer() {
+  document.getElementById('favDrawer').classList.remove('open');
+  document.getElementById('favDrawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderFavDrawer() {
+  const el = document.getElementById('favDrawerBody');
+  if (!favorites.length) {
+    el.innerHTML = '<div class="drawer-empty">まだ登録がありません<br>記事カードの☆アイコンをタップしてください</div>';
+    return;
+  }
+  el.innerHTML = favorites.map((a, i) => `
+    <div class="drawer-card" draggable="true" data-idx="${i}">
+      <span class="drag-handle" title="ドラッグして並び替え">☰</span>
+      <div class="drawer-card-content">
+        <button class="drawer-card-remove" title="削除" onclick="event.stopPropagation();removeFavorite(${i})">&#x2715;</button>
+        <div class="drawer-card-meta">
+          <span class="cat-badge ${a.category}" style="font-size:9px">${getCatLabel(a.category)}</span>
+          <span style="font-size:11px;color:#5a5870">${a.source}</span>
+          <span style="font-size:11px;color:#4a4860;margin-left:auto">${a.date}</span>
+        </div>
+        <div class="drawer-card-title">${a.title}</div>
+        <div class="drawer-card-summary">${a.summary}</div>
+      </div>
+    </div>`).join('');
+}
+
+function removeFavorite(i) {
+  favorites.splice(i, 1); saveFavorites(); updateFavCount(); renderFavDrawer(); renderCards();
+}
+
+// --- ドラッグ並び替え ---
+const _sortableInited = new Set();
+function initSortable(containerId, getList, saveFn, afterDrop) {
+  if (_sortableInited.has(containerId)) return;
+  _sortableInited.add(containerId);
+  const el = document.getElementById(containerId);
+  let dragSrcIdx = null;
+  let didDrag = false;
+
+  el.addEventListener('dragstart', e => {
+    const card = e.target.closest('.drawer-card[data-idx]');
+    if (!card) return;
+    dragSrcIdx = parseInt(card.dataset.idx, 10);
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => card.classList.add('dragging'), 0);
+  });
+  el.addEventListener('dragend', () => {
+    el.querySelectorAll('.drawer-card').forEach(c => c.classList.remove('dragging', 'drag-over'));
+  });
+  el.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const card = e.target.closest('.drawer-card[data-idx]');
+    el.querySelectorAll('.drawer-card').forEach(c => c.classList.remove('drag-over'));
+    if (card && parseInt(card.dataset.idx, 10) !== dragSrcIdx) card.classList.add('drag-over');
+  });
+  el.addEventListener('drop', e => {
+    e.preventDefault();
+    const card = e.target.closest('.drawer-card[data-idx]');
+    if (!card || dragSrcIdx === null) return;
+    const dropIdx = parseInt(card.dataset.idx, 10);
+    if (dragSrcIdx === dropIdx) { dragSrcIdx = null; return; }
+    didDrag = true;
+    const list = getList();
+    const [moved] = list.splice(dragSrcIdx, 1);
+    list.splice(dropIdx, 0, moved);
+    saveFn();
+    afterDrop();
+    dragSrcIdx = null;
+  });
+  el.addEventListener('click', e => {
+    if (didDrag) { didDrag = false; return; }
+    if (e.target.closest('.drawer-card-remove') || e.target.closest('.drag-handle')) return;
+    const card = e.target.closest('.drawer-card[data-idx]');
+    if (!card) return;
+    const item = getList()[parseInt(card.dataset.idx, 10)];
+    if (item?.url) window.open(item.url, '_blank', 'noopener,noreferrer');
+  });
 }
 
 // --- UI helpers ---
@@ -429,10 +579,20 @@ function renderCards() {
   }
   el.innerHTML = `<div class="grid">${articles.map((a, i) => `
     <div class="card ${a.category}" data-idx="${i}">
+      <button class="read-btn${isRead(a) ? ' active' : ''}" title="既読">
+        ${isRead(a)
+          ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="currentColor"/></svg>'
+          : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="none"/></svg>'}
+      </button>
       <button class="bookmark-btn${isBookmarked(a) ? ' active' : ''}" title="後で読む" onclick="toggleBookmark(articles[${i}], event)">
         ${isBookmarked(a)
           ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'
           : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'}
+      </button>
+      <button class="fav-btn${isFavorited(a) ? ' active' : ''}" title="お気に入り" onclick="toggleFavorite(articles[${i}], event)">
+        ${isFavorited(a)
+          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'}
       </button>
       <div class="card-meta">
         <span class="cat-badge ${a.category}">${getCatLabel(a.category)}</span>
@@ -445,11 +605,22 @@ function renderCards() {
     </div>`).join('')}</div>`;
 
   el.querySelector('.grid').addEventListener('click', e => {
-    if (e.target.closest('.bookmark-btn')) return;
+    if (e.target.closest('.bookmark-btn') || e.target.closest('.fav-btn')) return;
     const card = e.target.closest('.card[data-idx]');
     if (!card) return;
     const a = articles[parseInt(card.dataset.idx, 10)];
-    if (a.url) window.open(a.url, '_blank', 'noopener,noreferrer');
+    if (a.url) {
+      if (!readUrls.has(a.url)) {
+        readUrls.add(a.url);
+        saveReadUrls();
+        const btn = card.querySelector('.read-btn');
+        if (btn) {
+          btn.classList.add('active');
+          btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="currentColor"/></svg>';
+        }
+      }
+      window.open(a.url, '_blank', 'noopener,noreferrer');
+    }
   });
 }
 
@@ -495,6 +666,7 @@ async function fetchArticles() {
 
 loadApiKey();
 updateBkCount();
+updateFavCount();
 
 // file:// で開かれている場合は警告を表示
 if (location.protocol === 'file:') {
