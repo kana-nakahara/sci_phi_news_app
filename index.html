@@ -103,11 +103,6 @@
   .file-warn ol { padding-left: 1.25rem; margin-top: 6px; }
   .file-warn li { margin-bottom: 4px; }
   .file-warn-badge { display: inline-block; background: #e67e22; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
-
-  .load-more-bar { padding: 0 2rem 2.5rem; display: flex; justify-content: center; }
-  .load-more-btn { padding: 9px 32px; border-radius: 8px; background: transparent; border: 0.5px solid #3a3660; color: #9896a8; font-size: 13px; cursor: pointer; font-family: inherit; letter-spacing: 0.04em; transition: all 0.15s; display: flex; align-items: center; gap: 7px; }
-  .load-more-btn:hover { border-color: #7b6ef6; color: #b0aeff; }
-  .load-more-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -131,7 +126,7 @@
   </div>
   <button class="fetch-btn" id="fetchBtn" onclick="fetchArticles()">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-    記事を取得
+    最新記事を取得
   </button>
 </div>
 
@@ -159,9 +154,6 @@
   </details>
 </div>
 <div id="content"></div>
-<div class="load-more-bar" id="loadMoreBar" style="display:none">
-  <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreArticles()">さらに表示</button>
-</div>
 
 <!-- ブクマドロワー -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
@@ -188,9 +180,32 @@ const CAT_QUERIES = {
 
 let articles = [];
 let activeFilter = 'all';
-let currentPage = 1;
 let loading = false;
 let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+
+// --- 記事キャッシュ (localStorage) ---
+const ARTICLES_KEY = 'cached_articles';
+const ARTICLES_MAX = 500;
+
+function loadCachedArticles() {
+  try { return JSON.parse(localStorage.getItem(ARTICLES_KEY) || '[]'); }
+  catch (_) { return []; }
+}
+
+function saveCachedArticles(list) {
+  // 上限超過時は古いものから削除
+  const trimmed = list.length > ARTICLES_MAX ? list.slice(list.length - ARTICLES_MAX) : list;
+  try { localStorage.setItem(ARTICLES_KEY, JSON.stringify(trimmed)); } catch (_) {}
+  return trimmed;
+}
+
+function mergeWithCache(newItems) {
+  const cached = loadCachedArticles();
+  const existingUrls = new Set(cached.map(a => a.url));
+  const fresh = newItems.filter(a => a.url && !existingUrls.has(a.url));
+  // 新しいものを後ろに追加（古いものから削除されるため）
+  return saveCachedArticles([...cached, ...fresh]);
+}
 
 // --- ブクマ ---
 function saveBookmarks() { localStorage.setItem('bookmarks', JSON.stringify(bookmarks)); }
@@ -247,10 +262,6 @@ function removeBookmark(i) {
 }
 
 // --- UI helpers ---
-function setLoadMoreVisible(visible) {
-  document.getElementById('loadMoreBar').style.display = visible ? 'flex' : 'none';
-}
-
 function saveApiKey() {
   const key = document.getElementById('apikeyInput').value.trim();
   if (!key) return;
@@ -288,7 +299,7 @@ function guessCategory(title, desc) {
 }
 
 // --- Brave Search API ---
-const BRAVE_ENDPOINT = 'https://api.search.brave.com/res/v1/web/search';
+const BRAVE_ENDPOINT = 'https://api.search.brave.com/res/v1/news/search';
 
 // 接続先リスト: 直接 → corsproxy.io → allorigins.win の順に自動フォールバック
 const PROXY_BUILDERS = [
@@ -315,13 +326,14 @@ function showError(msg, detail) {
 async function braveSearch(query, apiKey, offset = 0) {
   const params = new URLSearchParams({
     q: query,
-    count: '10',
+    count: '20',
     offset: String(offset),
     country: 'jp',
     search_lang: 'jp',
     ui_lang: 'ja-JP',
-    text_decorations: '0',
-    result_filter: 'web,news',
+    freshness: 'pw',
+    spellcheck: '0',
+    extra_snippets: '1',
   });
   const targetUrl = `${BRAVE_ENDPOINT}?${params}`;
 
@@ -373,19 +385,24 @@ async function braveSearch(query, apiKey, offset = 0) {
 }
 
 function braveResultsToArticles(data, category) {
-  const results = [
-    ...(data.news?.results || []),
-    ...(data.web?.results || []),
-  ];
-  return results.slice(0, 10).map(r => {
-    const date = r.page_age
-      ? new Date(r.page_age).toLocaleDateString('ja-JP', { year:'numeric', month:'2-digit', day:'2-digit' })
-      : new Date().toLocaleDateString('ja-JP', { year:'numeric', month:'2-digit', day:'2-digit' });
-    const source = r.meta_url?.hostname?.replace(/^www\./, '') || r.url?.match(/https?:\/\/([^/]+)/)?.[1] || '不明';
+  // News API: results are at top level (not nested under news.results / web.results)
+  const results = data.results || [];
+  return results.map(r => {
+    // age フィールド: ISO日付文字列 or 相対表現 ("2 hours ago")
+    let date = '';
+    if (r.age) {
+      const d = new Date(r.age);
+      date = isNaN(d.getTime())
+        ? r.age  // 相対表現はそのまま表示
+        : d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
+    const source = r.meta_url?.hostname?.replace(/^www\./, '') ||
+                   r.source ||
+                   r.url?.match(/https?:\/\/([^/]+)/)?.[1] || '不明';
     const cat = category === 'all' ? guessCategory(r.title || '', r.description || '') : category;
     return {
       title: r.title || '',
-      summary: r.description || '',
+      summary: r.extra_snippets?.[0] || r.description || '',
       category: cat,
       source,
       date,
@@ -447,12 +464,10 @@ function getApiKeyOrShowError() {
 async function fetchArticles() {
   if (loading) return;
   loading = true;
-  currentPage = 1;
   const btn = document.getElementById('fetchBtn');
   btn.disabled = true;
   btn.innerHTML = `<span class="spin">↻</span> 取得中...`;
   document.getElementById('errorBanner').style.display = 'none';
-  setLoadMoreVisible(false);
   showSkeleton();
 
   const apiKey = getApiKeyOrShowError();
@@ -467,44 +482,14 @@ async function fetchArticles() {
     const queries = CAT_QUERIES[activeFilter] || CAT_QUERIES.all;
     const results = await Promise.all(queries.map(q => braveSearch(q, apiKey, 0)));
     const merged = results.flatMap(d => braveResultsToArticles(d, activeFilter));
-    const seen = new Set();
-    articles = merged.filter(a => { if (!a.url || seen.has(a.url)) return false; seen.add(a.url); return true; });
+    articles = mergeWithCache(merged);
     renderCards();
-    setLoadMoreVisible(articles.length > 0);
   } catch (err) {
     showError('エラー: ' + err.message, err.detailInfo || null);
     document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">取得に失敗しました</div><div class="empty-sub">もう一度お試しください</div></div>`;
   } finally {
     loading = false; btn.disabled = false;
     btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> 記事を取得`;
-  }
-}
-
-async function loadMoreArticles() {
-  if (loading) return;
-  loading = true;
-  currentPage++;
-  const btn = document.getElementById('loadMoreBtn');
-  btn.disabled = true;
-  btn.innerHTML = `<span class="spin">↻</span> 読み込み中...`;
-  document.getElementById('errorBanner').style.display = 'none';
-
-  const apiKey = getApiKeyOrShowError();
-  if (!apiKey) { loading = false; btn.disabled = false; btn.innerHTML = 'さらに表示'; return; }
-
-  try {
-    const queries = CAT_QUERIES[activeFilter] || CAT_QUERIES.all;
-    const offset = (currentPage - 1) * 10;
-    const results = await Promise.all(queries.map(q => braveSearch(q, apiKey, offset)));
-    const merged = results.flatMap(d => braveResultsToArticles(d, activeFilter));
-    const existingUrls = new Set(articles.map(a => a.url));
-    const newArticles = merged.filter(a => a.url && !existingUrls.has(a.url));
-    articles = articles.concat(newArticles);
-    renderCards();
-  } catch (err) {
-    showError('エラー: ' + err.message, err.detailInfo || null);
-  } finally {
-    loading = false; btn.disabled = false; btn.innerHTML = 'さらに表示';
   }
 }
 
@@ -516,7 +501,13 @@ if (location.protocol === 'file:') {
   document.getElementById('fileWarn').style.display = 'block';
 }
 
-document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">「記事を取得」で今日のフィードを読み込みます</div><div class="empty-sub">Brave Search — リアルタイム検索</div></div>`;
+// キャッシュがあれば起動時に表示
+articles = loadCachedArticles();
+if (articles.length > 0) {
+  renderCards();
+} else {
+  document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">「記事を取得」で今日のフィードを読み込みます</div><div class="empty-sub">Brave Search — リアルタイム検索</div></div>`;
+}
 </script>
 </body>
 </html>
