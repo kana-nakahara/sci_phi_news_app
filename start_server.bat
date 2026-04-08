@@ -10,7 +10,7 @@ cd /d "%~dp0"
 python --version > nul 2>&1
 if %errorlevel% == 0 (
     echo [OK] Python が見つかりました。http://localhost:8080 で起動します...
-    start "" "http://localhost:8080/sci_phi_news_app.html"
+    start "" "http://localhost:8080/index.html"
     python -m http.server 8080
 ) else (
     echo [ERROR] Python が見つかりませんでした。
