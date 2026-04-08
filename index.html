@@ -40,7 +40,7 @@
   .card.occult::before { background: linear-gradient(90deg, #a78bfa, #ec4899); }
   .card.mixed::before { background: linear-gradient(90deg, #7b6ef6, #38bdf8); }
 
-  .card-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; }
+  .card-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; padding-right: 96px; }
   .cat-badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 500; letter-spacing: 0.06em; }
   .cat-badge.science { background: #0a2010; color: #4ade80; border: 0.5px solid #1a4020; }
   .cat-badge.philosophy { background: #201508; color: #f59e0b; border: 0.5px solid #40280a; }
@@ -54,16 +54,31 @@
   .card-link { font-size: 11px; color: #7b6ef6; margin-top: 0.75rem; display: inline-flex; align-items: center; gap: 4px; }
   .card-link:hover { color: #a89fff; }
 
-  /* ブクマ */
-  .read-btn { position: absolute; top: 10px; right: 62px; background: none; border: none; cursor: default; padding: 4px; color: #3a3860; display: flex; align-items: center; justify-content: center; border-radius: 6px; pointer-events: none; }
+  /* カードアイコン群 */
+  .card-icons { position: absolute; top: 8px; right: 6px; display: flex; align-items: center; gap: 0; }
+  .read-btn { background: none; border: none; cursor: default; padding: 4px; color: #3a3860; display: flex; align-items: center; justify-content: center; border-radius: 6px; pointer-events: none; }
   .read-btn.active { color: #5a9ef0; }
-  .bookmark-btn { position: absolute; top: 10px; right: 36px; background: none; border: none; cursor: pointer; padding: 4px; color: #6b6880; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.15s; }
+  .video-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #6b6880; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.15s; }
+  .video-btn:hover { color: #34d399; }
+  .video-btn.active { color: #34d399; }
+  .videodone-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #3a3860; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.15s; }
+  .videodone-btn:hover { color: #34d399; }
+  .videodone-btn.done { color: #34d399; }
+  .bookmark-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #6b6880; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.15s; }
   .bookmark-btn:hover { color: #7b6ef6; }
   .bookmark-btn.active { color: #7b6ef6; }
   /* お気に入り */
-  .fav-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; cursor: pointer; padding: 4px; color: #6b6880; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.15s; }
+  .fav-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #6b6880; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.15s; }
   .fav-btn:hover { color: #f59e0b; }
   .fav-btn.active { color: #f59e0b; }
+  .header-videodone { background: none; border: none; cursor: pointer; color: #6b6880; display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; transition: color 0.15s; font-family: inherit; }
+  .header-videodone:hover { color: #34d399; }
+  .videodone-count { font-size: 11px; background: #34d399; color: #0a0a0f; border-radius: 999px; padding: 1px 6px; display: none; }
+  .videodone-count.visible { display: inline-block; }
+  .header-video { background: none; border: none; cursor: pointer; color: #6b6880; display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; transition: color 0.15s; font-family: inherit; }
+  .header-video:hover { color: #34d399; }
+  .video-count { font-size: 11px; background: #34d399; color: #0a0a0f; border-radius: 999px; padding: 1px 6px; display: none; }
+  .video-count.visible { display: inline-block; }
   .header-bookmark { background: none; border: none; cursor: pointer; color: #6b6880; display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; transition: color 0.15s; font-family: inherit; }
   .header-bookmark:hover { color: #b0aeff; }
   .bk-count { font-size: 11px; background: #7b6ef6; color: #fff; border-radius: 999px; padding: 1px 6px; display: none; }
@@ -92,6 +107,7 @@
   .drag-handle:hover { color: #6b6880; }
   .drag-handle:active { cursor: grabbing; }
   .drawer-card-content { flex: 1; min-width: 0; }
+  .drawer-card .card-meta { padding-right: 116px; }
   .drawer-card-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 0.4rem; }
   .drawer-card-title { font-size: 13px; font-weight: 500; color: #d4d0e8; line-height: 1.45; margin-bottom: 0.3rem; }
   .drawer-card-summary { font-size: 11px; color: #7a7890; line-height: 1.5; }
@@ -126,6 +142,14 @@
 <header>
   <div class="logo">実在研究所 <span>科学・哲学NEWS</span></div>
   <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+    <button class="header-video" id="headerVideo" onclick="openVideoDrawer()" title="動画用">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      <span class="video-count" id="videoCount"></span>
+    </button>
+    <button class="header-videodone" id="headerVideoDone" onclick="openVideoDoneDrawer()" title="動画作成済み">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      <span class="videodone-count" id="videoDoneCount"></span>
+    </button>
     <button class="header-bookmark" id="headerBookmark" onclick="openDrawer()" title="後で読む">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       <span class="bk-count" id="bkCount"></span>
@@ -202,6 +226,32 @@
   <div class="drawer-body" id="favDrawerBody"></div>
 </div>
 
+<!-- 動画用ドロワー -->
+<div class="drawer-overlay" id="videoDrawerOverlay" onclick="closeVideoDrawer()"></div>
+<div class="drawer" id="videoDrawer">
+  <div class="drawer-header">
+    <div class="drawer-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      動画用
+    </div>
+    <button class="drawer-close" onclick="closeVideoDrawer()">×</button>
+  </div>
+  <div class="drawer-body" id="videoDrawerBody"></div>
+</div>
+
+<!-- 動画作成済みドロワー -->
+<div class="drawer-overlay" id="videoDoneDrawerOverlay" onclick="closeVideoDoneDrawer()"></div>
+<div class="drawer" id="videoDoneDrawer">
+  <div class="drawer-header">
+    <div class="drawer-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      動画作成済み
+    </div>
+    <button class="drawer-close" onclick="closeVideoDoneDrawer()">×</button>
+  </div>
+  <div class="drawer-body" id="videoDoneDrawerBody"></div>
+</div>
+
 <script>
 // カテゴリ → Brave Search クエリのマッピング
 const CAT_QUERIES = {
@@ -217,6 +267,8 @@ let activeFilter = 'all';
 let loading = false;
 let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
 let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+let videoList = JSON.parse(localStorage.getItem('video_list') || '[]');
+let videoDoneList = JSON.parse(localStorage.getItem('video_done_list') || '[]');
 let readUrls = new Set(JSON.parse(localStorage.getItem('read_urls') || '[]'));
 function saveReadUrls() { try { localStorage.setItem('read_urls', JSON.stringify([...readUrls])); } catch(e) {} }
 function isRead(a) { return readUrls.has(a.url); }
@@ -249,12 +301,18 @@ function mergeWithCache(newItems) {
 function saveBookmarks() { localStorage.setItem('bookmarks', JSON.stringify(bookmarks)); }
 function isBookmarked(a) { return bookmarks.some(b => b.title === a.title); }
 
+function renderOpenDrawers() {
+  if (document.getElementById('drawer').classList.contains('open')) renderDrawer();
+  if (document.getElementById('favDrawer').classList.contains('open')) renderFavDrawer();
+  if (document.getElementById('videoDrawer').classList.contains('open')) renderVideoDrawer();
+  if (document.getElementById('videoDoneDrawer').classList.contains('open')) renderVideoDoneDrawer();
+}
+
 function toggleBookmark(a, e) {
   e.stopPropagation();
   if (isBookmarked(a)) { bookmarks = bookmarks.filter(b => b.title !== a.title); }
   else { bookmarks.push(a); }
-  saveBookmarks(); updateBkCount(); renderCards();
-  if (document.getElementById('drawer').classList.contains('open')) renderDrawer();
+  saveBookmarks(); updateBkCount(); renderCards(); renderOpenDrawers();
 }
 
 function updateBkCount() {
@@ -283,20 +341,7 @@ function renderDrawer() {
     el.innerHTML = '<div class="drawer-empty">まだ登録がありません<br>記事カードのブクマアイコンをタップしてください</div>';
     return;
   }
-  el.innerHTML = bookmarks.map((a, i) => `
-    <div class="drawer-card" draggable="true" data-idx="${i}">
-      <span class="drag-handle" title="ドラッグして並び替え">☰</span>
-      <div class="drawer-card-content">
-        <button class="drawer-card-remove" title="削除" onclick="event.stopPropagation();removeBookmark(${i})">&#x2715;</button>
-        <div class="drawer-card-meta">
-          <span class="cat-badge ${a.category}" style="font-size:9px">${getCatLabel(a.category)}</span>
-          <span style="font-size:11px;color:#5a5870">${a.source}</span>
-          <span style="font-size:11px;color:#4a4860;margin-left:auto">${a.date}</span>
-        </div>
-        <div class="drawer-card-title">${a.title}</div>
-        <div class="drawer-card-summary">${a.summary}</div>
-      </div>
-    </div>`).join('');
+  el.innerHTML = bookmarks.map((a, i) => makeDrawerCardHTML(a, i, 'bookmarks')).reverse().join('');
 }
 
 function removeBookmark(i) {
@@ -311,8 +356,7 @@ function toggleFavorite(a, e) {
   e.stopPropagation();
   if (isFavorited(a)) { favorites = favorites.filter(f => f.title !== a.title); }
   else { favorites.push(a); }
-  saveFavorites(); updateFavCount(); renderCards();
-  if (document.getElementById('favDrawer').classList.contains('open')) renderFavDrawer();
+  saveFavorites(); updateFavCount(); renderCards(); renderOpenDrawers();
 }
 
 function updateFavCount() {
@@ -341,27 +385,132 @@ function renderFavDrawer() {
     el.innerHTML = '<div class="drawer-empty">まだ登録がありません<br>記事カードの☆アイコンをタップしてください</div>';
     return;
   }
-  el.innerHTML = favorites.map((a, i) => `
-    <div class="drawer-card" draggable="true" data-idx="${i}">
-      <span class="drag-handle" title="ドラッグして並び替え">☰</span>
-      <div class="drawer-card-content">
-        <button class="drawer-card-remove" title="削除" onclick="event.stopPropagation();removeFavorite(${i})">&#x2715;</button>
-        <div class="drawer-card-meta">
-          <span class="cat-badge ${a.category}" style="font-size:9px">${getCatLabel(a.category)}</span>
-          <span style="font-size:11px;color:#5a5870">${a.source}</span>
-          <span style="font-size:11px;color:#4a4860;margin-left:auto">${a.date}</span>
-        </div>
-        <div class="drawer-card-title">${a.title}</div>
-        <div class="drawer-card-summary">${a.summary}</div>
-      </div>
-    </div>`).join('');
+  el.innerHTML = favorites.map((a, i) => makeDrawerCardHTML(a, i, 'favorites')).reverse().join('');
 }
 
 function removeFavorite(i) {
   favorites.splice(i, 1); saveFavorites(); updateFavCount(); renderFavDrawer(); renderCards();
 }
 
-// --- ドラッグ並び替え ---
+// --- 動画用 ---
+function saveVideoList() { localStorage.setItem('video_list', JSON.stringify(videoList)); }
+function isInVideoList(a) { return videoList.some(v => v.url === a.url); }
+
+function toggleVideoList(a, e) {
+  e.stopPropagation();
+  if (isInVideoList(a)) { videoList = videoList.filter(v => v.url !== a.url); }
+  else { videoList.push(a); }
+  saveVideoList(); updateVideoCount(); renderCards(); renderOpenDrawers();
+}
+
+function updateVideoCount() {
+  const el = document.getElementById('videoCount');
+  if (videoList.length > 0) { el.textContent = videoList.length; el.classList.add('visible'); }
+  else { el.classList.remove('visible'); }
+}
+
+function openVideoDrawer() {
+  renderVideoDrawer();
+  document.getElementById('videoDrawer').classList.add('open');
+  document.getElementById('videoDrawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  initSortable('videoDrawerBody', () => videoList, saveVideoList, () => { renderVideoDrawer(); renderCards(); });
+}
+
+function closeVideoDrawer() {
+  document.getElementById('videoDrawer').classList.remove('open');
+  document.getElementById('videoDrawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderVideoDrawer() {
+  const el = document.getElementById('videoDrawerBody');
+  if (!videoList.length) {
+    el.innerHTML = '<div class="drawer-empty">まだ登録がありません<br>記事カードのビデオアイコンをタップしてください</div>';
+    return;
+  }
+  el.innerHTML = videoList.map((a, i) => makeDrawerCardHTML(a, i, 'videoList')).reverse().join('');
+}
+
+function removeVideoItem(i) {
+  videoList.splice(i, 1); saveVideoList(); updateVideoCount(); renderVideoDrawer(); renderCards();
+}
+
+// --- 動画作成済み ---
+function saveVideoDoneList() { localStorage.setItem('video_done_list', JSON.stringify(videoDoneList)); }
+function isVideoDone(a) { return videoDoneList.some(v => v.url === a.url); }
+
+function markVideoDone(a, e) {
+  e.stopPropagation();
+  // videoList から除外
+  videoList = videoList.filter(v => v.url !== a.url);
+  saveVideoList(); updateVideoCount();
+  // videoDoneList に追加（重複防止）
+  if (!isVideoDone(a)) { videoDoneList.push(a); }
+  saveVideoDoneList(); updateVideoDoneCount();
+  renderCards(); renderOpenDrawers();
+}
+
+function updateVideoDoneCount() {
+  const el = document.getElementById('videoDoneCount');
+  if (videoDoneList.length > 0) { el.textContent = videoDoneList.length; el.classList.add('visible'); }
+  else { el.classList.remove('visible'); }
+}
+
+function openVideoDoneDrawer() {
+  renderVideoDoneDrawer();
+  document.getElementById('videoDoneDrawer').classList.add('open');
+  document.getElementById('videoDoneDrawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  initSortable('videoDoneDrawerBody', () => videoDoneList, saveVideoDoneList, () => { renderVideoDoneDrawer(); renderCards(); });
+}
+
+function closeVideoDoneDrawer() {
+  document.getElementById('videoDoneDrawer').classList.remove('open');
+  document.getElementById('videoDoneDrawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderVideoDoneDrawer() {
+  const el = document.getElementById('videoDoneDrawerBody');
+  if (!videoDoneList.length) {
+    el.innerHTML = '<div class="drawer-empty">まだ作成済みの記事がありません<br>動画用カードのチェックアイコンをタップしてください</div>';
+    return;
+  }
+  el.innerHTML = videoDoneList.map((a, i) => makeDrawerCardHTML(a, i, 'videoDoneList')).reverse().join('');
+}
+function makeDrawerCardHTML(a, i, listName) {
+  const eyeFilled = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="currentColor"/></svg>';
+  const eyeOutline = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="none"/></svg>';
+  const videoFilled = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7" fill="currentColor"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2" fill="currentColor"/></svg>';
+  const videoOutline = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>';
+  const bkFilled = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+  const bkOutline = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+  const favFilled = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+  const favOutline = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+  const showVideoDone = (listName === 'videoList' || listName === 'videoDoneList');
+  return `
+    <div class="drawer-card" draggable="true" data-idx="${i}">
+      <span class="drag-handle" title="ドラッグして並び替え">☰</span>
+      <div class="card-icons">
+        <button class="read-btn${isRead(a) ? ' active' : ''}" title="既読">${isRead(a) ? eyeFilled : eyeOutline}</button>
+        <button class="video-btn${isInVideoList(a) ? ' active' : ''}" title="動画用" onclick="toggleVideoList(${listName}[${i}], event)">${isInVideoList(a) ? videoFilled : videoOutline}</button>
+        ${showVideoDone ? `<button class="videodone-btn${isVideoDone(a) ? ' done' : ''}" title="動画作成済み" onclick="markVideoDone(${listName}[${i}], event)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>` : ''}
+        <button class="bookmark-btn${isBookmarked(a) ? ' active' : ''}" title="後で読む" onclick="toggleBookmark(${listName}[${i}], event)">${isBookmarked(a) ? bkFilled : bkOutline}</button>
+        <button class="fav-btn${isFavorited(a) ? ' active' : ''}" title="お気に入り" onclick="toggleFavorite(${listName}[${i}], event)">${isFavorited(a) ? favFilled : favOutline}</button>
+      </div>
+      <div class="drawer-card-content">
+        <div class="card-meta">
+          <span class="cat-badge ${a.category}">${getCatLabel(a.category)}</span>
+          <span class="card-source">${a.source}</span>
+          <span class="card-date">${a.date}</span>
+        </div>
+        <div class="card-title">${a.title}</div>
+        <div class="card-summary">${a.summary}</div>
+        <span class="card-link">記事を読む →</span>
+      </div>
+    </div>`;
+}
 const _sortableInited = new Set();
 function initSortable(containerId, getList, saveFn, afterDrop) {
   if (_sortableInited.has(containerId)) return;
@@ -403,11 +552,22 @@ function initSortable(containerId, getList, saveFn, afterDrop) {
   });
   el.addEventListener('click', e => {
     if (didDrag) { didDrag = false; return; }
-    if (e.target.closest('.drawer-card-remove') || e.target.closest('.drag-handle')) return;
+    if (e.target.closest('.drag-handle') || e.target.closest('.bookmark-btn') || e.target.closest('.fav-btn') || e.target.closest('.video-btn') || e.target.closest('.videodone-btn')) return;
     const card = e.target.closest('.drawer-card[data-idx]');
     if (!card) return;
     const item = getList()[parseInt(card.dataset.idx, 10)];
-    if (item?.url) window.open(item.url, '_blank', 'noopener,noreferrer');
+    if (item?.url) {
+      if (!readUrls.has(item.url)) {
+        readUrls.add(item.url);
+        saveReadUrls();
+        const btn = card.querySelector('.read-btn');
+        if (btn) {
+          btn.classList.add('active');
+          btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="currentColor"/></svg>';
+        }
+      }
+      window.open(item.url, '_blank', 'noopener,noreferrer');
+    }
   });
 }
 
@@ -579,21 +739,28 @@ function renderCards() {
   }
   el.innerHTML = `<div class="grid">${articles.map((a, i) => `
     <div class="card ${a.category}" data-idx="${i}">
-      <button class="read-btn${isRead(a) ? ' active' : ''}" title="既読">
-        ${isRead(a)
-          ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="currentColor"/></svg>'
-          : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="none"/></svg>'}
-      </button>
-      <button class="bookmark-btn${isBookmarked(a) ? ' active' : ''}" title="後で読む" onclick="toggleBookmark(articles[${i}], event)">
-        ${isBookmarked(a)
-          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'
-          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'}
-      </button>
-      <button class="fav-btn${isFavorited(a) ? ' active' : ''}" title="お気に入り" onclick="toggleFavorite(articles[${i}], event)">
-        ${isFavorited(a)
-          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
-          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'}
-      </button>
+      <div class="card-icons">
+        <button class="read-btn${isRead(a) ? ' active' : ''}" title="既読">
+          ${isRead(a)
+            ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="currentColor"/></svg>'
+            : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="none"/></svg>'}
+        </button>
+        <button class="video-btn${isInVideoList(a) ? ' active' : ''}" title="動画用" onclick="toggleVideoList(articles[${i}], event)">
+          ${isInVideoList(a)
+            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7" fill="currentColor"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2" fill="currentColor"/></svg>'
+            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'}
+        </button>
+        <button class="bookmark-btn${isBookmarked(a) ? ' active' : ''}" title="後で読む" onclick="toggleBookmark(articles[${i}], event)">
+          ${isBookmarked(a)
+            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'
+            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'}
+        </button>
+        <button class="fav-btn${isFavorited(a) ? ' active' : ''}" title="お気に入り" onclick="toggleFavorite(articles[${i}], event)">
+          ${isFavorited(a)
+            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'}
+        </button>
+      </div>
       <div class="card-meta">
         <span class="cat-badge ${a.category}">${getCatLabel(a.category)}</span>
         <span class="card-source">${a.source}</span>
@@ -605,7 +772,7 @@ function renderCards() {
     </div>`).join('')}</div>`;
 
   el.querySelector('.grid').addEventListener('click', e => {
-    if (e.target.closest('.bookmark-btn') || e.target.closest('.fav-btn')) return;
+    if (e.target.closest('.bookmark-btn') || e.target.closest('.fav-btn') || e.target.closest('.video-btn') || e.target.closest('.videodone-btn')) return;
     const card = e.target.closest('.card[data-idx]');
     if (!card) return;
     const a = articles[parseInt(card.dataset.idx, 10)];
@@ -667,6 +834,8 @@ async function fetchArticles() {
 loadApiKey();
 updateBkCount();
 updateFavCount();
+updateVideoCount();
+updateVideoDoneCount();
 
 // file:// で開かれている場合は警告を表示
 if (location.protocol === 'file:') {
