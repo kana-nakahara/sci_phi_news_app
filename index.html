@@ -17,9 +17,16 @@
   .tag { padding: 4px 12px; border-radius: 999px; font-size: 12px; cursor: pointer; border: 0.5px solid #2a2840; color: #9896a8; background: transparent; transition: all 0.15s; letter-spacing: 0.03em; }
   .tag:hover { border-color: #7b6ef6; color: #b0aeff; }
   .tag.active { background: #7b6ef6; border-color: #7b6ef6; color: #fff; }
-  .fetch-btn { margin-left: auto; padding: 7px 18px; border-radius: 8px; background: #7b6ef6; border: none; color: #fff; font-size: 13px; cursor: pointer; font-family: inherit; letter-spacing: 0.04em; transition: all 0.15s; display: flex; align-items: center; gap: 7px; }
+  .fetch-btn { padding: 7px 18px; border-radius: 8px; background: #7b6ef6; border: none; color: #fff; font-size: 13px; cursor: pointer; font-family: inherit; letter-spacing: 0.04em; transition: all 0.15s; display: flex; align-items: center; gap: 7px; }
   .fetch-btn:hover { background: #6a5de0; }
   .fetch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .sort-bar { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .sort-key-btn { padding: 4px 11px; border-radius: 6px 0 0 6px; font-size: 11px; cursor: pointer; border: 0.5px solid #2a2840; color: #9896a8; background: transparent; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+  .sort-key-btn.active { background: #1e1c30; border-color: #4a4866; color: #d4d0e8; }
+  .sort-dir-btn { padding: 4px 9px; border-radius: 0 6px 6px 0; font-size: 13px; cursor: pointer; border: 0.5px solid #2a2840; border-left: none; color: #9896a8; background: transparent; font-family: inherit; transition: all 0.15s; line-height: 1; }
+  .sort-dir-btn:hover, .sort-key-btn:hover { border-color: #4a4866; color: #d4d0e8; }
+  .clear-btn { padding: 5px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; border: 0.5px solid #3a2020; color: #7a5050; background: transparent; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+  .clear-btn:hover { border-color: #f87171; color: #f87171; background: #1a0808; }
   .spin { display: inline-block; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -71,6 +78,9 @@
   .fav-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #6b6880; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color 0.15s; }
   .fav-btn:hover { color: #f59e0b; }
   .fav-btn.active { color: #f59e0b; }
+  .new-badge { position: absolute; top: 36px; right: -1px; background: #34d399; color: #052010; font-size: 9px; font-weight: 700; padding: 2px 9px 2px 7px; border-radius: 4px 0 0 4px; letter-spacing: 0.06em; z-index: 1; pointer-events: none; }
+  .hide-btn { position: absolute; top: 5px; left: 5px; background: none; border: none; cursor: pointer; color: #a05050; padding: 2px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: color 0.15s; z-index: 2; }
+  .hide-btn:hover { color: #f87171; }
   .header-videodone { background: none; border: none; cursor: pointer; color: #6b6880; display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; transition: color 0.15s; font-family: inherit; }
   .header-videodone:hover { color: #34d399; }
   .videodone-count { font-size: 11px; background: #34d399; color: #0a0a0f; border-radius: 999px; padding: 1px 6px; display: none; }
@@ -166,13 +176,18 @@
     <button class="tag active" data-cat="all">すべて</button>
     <button class="tag" data-cat="science">科学</button>
     <button class="tag" data-cat="philosophy">哲学</button>
-    <button class="tag" data-cat="history">科学史</button>
+    <button class="tag" data-cat="history">歴史</button>
     <button class="tag" data-cat="occult">神秘・オカルト</button>
+  </div>
+  <div class="sort-bar">
+    <button class="sort-key-btn active" id="sortKeyBtn" onclick="toggleSortKey()">取得順</button>
+    <button class="sort-dir-btn" id="sortDirBtn" onclick="toggleSortDir()">&#8595;</button>
   </div>
   <button class="fetch-btn" id="fetchBtn" onclick="fetchArticles()">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
     最新記事を取得
   </button>
+  <button class="clear-btn" onclick="clearAllStorage()">データをリセット</button>
 </div>
 
 <div class="apikey-bar">
@@ -255,15 +270,17 @@
 <script>
 // カテゴリ → Brave Search クエリのマッピング
 const CAT_QUERIES = {
-  all:        ['科学 最新ニュース', '哲学 思想 ニュース', '神秘 オカルト ニュース'],
+  all:        ['科学 最新ニュース', '哲学 思想 ニュース', '歴史 発見 ニュース', '神秘 オカルト ニュース'],
   science:    ['科学 宇宙 AI 最新ニュース', '物理 生命科学 発見 2026'],
   philosophy: ['哲学 倫理 思想 ニュース', '認知科学 意識 研究 2026'],
-  history:    ['科学史 思想史 発見 ニュース', '文明史 歴史 研究 2026'],
+  history:    ['歴史 発見 ニュース 2026', '古代 中世 文明史 研究'],
   occult:     ['神秘主義 オカルト ニュース', '宗教思想 精神世界 スピリチュアル 2026'],
 };
 
 let articles = [];
 let activeFilter = 'all';
+let sortKey = 'fetch';  // 'fetch' | 'date'
+let sortDir = 'desc';   // 'desc' | 'asc'
 let loading = false;
 let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
 let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
@@ -272,6 +289,9 @@ let videoDoneList = JSON.parse(localStorage.getItem('video_done_list') || '[]');
 let readUrls = new Set(JSON.parse(localStorage.getItem('read_urls') || '[]'));
 function saveReadUrls() { try { localStorage.setItem('read_urls', JSON.stringify([...readUrls])); } catch(e) {} }
 function isRead(a) { return readUrls.has(a.url); }
+let hiddenUrls = new Set(JSON.parse(localStorage.getItem('hidden_urls') || '[]'));
+function saveHiddenUrls() { try { localStorage.setItem('hidden_urls', JSON.stringify([...hiddenUrls])); } catch(e) {} }
+function isHidden(a) { return a.url && hiddenUrls.has(a.url); }
 
 // --- 記事キャッシュ (localStorage) ---
 const ARTICLES_KEY = 'cached_articles';
@@ -341,7 +361,7 @@ function renderDrawer() {
     el.innerHTML = '<div class="drawer-empty">まだ登録がありません<br>記事カードのブクマアイコンをタップしてください</div>';
     return;
   }
-  el.innerHTML = bookmarks.map((a, i) => makeDrawerCardHTML(a, i, 'bookmarks')).reverse().join('');
+  el.innerHTML = bookmarks.filter(a => !isHidden(a)).map((a, i) => makeDrawerCardHTML(a, i, 'bookmarks')).reverse().join('');
 }
 
 function removeBookmark(i) {
@@ -385,7 +405,7 @@ function renderFavDrawer() {
     el.innerHTML = '<div class="drawer-empty">まだ登録がありません<br>記事カードの☆アイコンをタップしてください</div>';
     return;
   }
-  el.innerHTML = favorites.map((a, i) => makeDrawerCardHTML(a, i, 'favorites')).reverse().join('');
+  el.innerHTML = favorites.filter(a => !isHidden(a)).map((a, i) => makeDrawerCardHTML(a, i, 'favorites')).reverse().join('');
 }
 
 function removeFavorite(i) {
@@ -429,7 +449,7 @@ function renderVideoDrawer() {
     el.innerHTML = '<div class="drawer-empty">まだ登録がありません<br>記事カードのビデオアイコンをタップしてください</div>';
     return;
   }
-  el.innerHTML = videoList.map((a, i) => makeDrawerCardHTML(a, i, 'videoList')).reverse().join('');
+  el.innerHTML = videoList.filter(a => !isHidden(a)).map((a, i) => makeDrawerCardHTML(a, i, 'videoList')).reverse().join('');
 }
 
 function removeVideoItem(i) {
@@ -477,7 +497,7 @@ function renderVideoDoneDrawer() {
     el.innerHTML = '<div class="drawer-empty">まだ作成済みの記事がありません<br>動画用カードのチェックアイコンをタップしてください</div>';
     return;
   }
-  el.innerHTML = videoDoneList.map((a, i) => makeDrawerCardHTML(a, i, 'videoDoneList')).reverse().join('');
+  el.innerHTML = videoDoneList.filter(a => !isHidden(a)).map((a, i) => makeDrawerCardHTML(a, i, 'videoDoneList')).reverse().join('');
 }
 function makeDrawerCardHTML(a, i, listName) {
   const eyeFilled = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="currentColor"/></svg>';
@@ -595,14 +615,63 @@ document.getElementById('tagFilter').addEventListener('click', e => {
   fetchArticles();
 });
 
+function hideArticle(url, e) {
+  e.stopPropagation();
+  if (!confirm('この記事を非表示にしますか？')) return;
+  hiddenUrls.add(url);
+  saveHiddenUrls();
+  // 各リストからも削除
+  bookmarks = bookmarks.filter(a => a.url !== url);
+  saveBookmarks(); updateBkCount();
+  favorites = favorites.filter(a => a.url !== url);
+  saveFavorites(); updateFavCount();
+  videoList = videoList.filter(a => a.url !== url);
+  saveVideoList(); updateVideoCount();
+  videoDoneList = videoDoneList.filter(a => a.url !== url);
+  saveVideoDoneList(); updateVideoDoneCount();
+  renderCards();
+  renderOpenDrawers();
+}
+
+function toggleSortKey() {
+  sortKey = sortKey === 'fetch' ? 'date' : 'fetch';
+  document.getElementById('sortKeyBtn').textContent = sortKey === 'fetch' ? '取得順' : '日付順';
+  renderCards();
+}
+
+function toggleSortDir() {
+  sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+  document.getElementById('sortDirBtn').innerHTML = sortDir === 'desc' ? '&#8595;' : '&#8593;';
+  renderCards();
+}
+
+function clearAllStorage() {
+  if (!confirm('すべてのデータ（記事キャッシュ・後で読む・お気に入り・動画リスト・既読履歴）を削除します。\nAPIキーは保持されます。よろしいですか？')) return;
+  const savedKey = localStorage.getItem('brave_api_key');
+  localStorage.clear();
+  if (savedKey) localStorage.setItem('brave_api_key', savedKey);
+  articles = [];
+  bookmarks = [];
+  favorites = [];
+  videoList = [];
+  videoDoneList = [];
+  hiddenUrls = new Set();
+  readUrls = new Set();
+  updateBkCount();
+  updateFavCount();
+  updateVideoCount();
+  updateVideoDoneCount();
+  document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">データをリセットしました</div><div class="empty-sub">「記事を取得」で再読み込みできます</div></div>`;
+}
+
 function getCatLabel(cat) {
-  return { science:'科学', philosophy:'哲学', history:'科学史', occult:'神秘・オカルト', mixed:'複合' }[cat] || cat;
+  return { science:'科学', philosophy:'哲学', history:'歴史', occult:'神秘・オカルト', mixed:'複合' }[cat] || cat;
 }
 
 function guessCategory(title, desc) {
   const text = (title + ' ' + desc).toLowerCase();
   if (/哲学|倫理|思想|認知|意識|形而上/.test(text)) return 'philosophy';
-  if (/科学史|思想史|文明史|歴史|古代|中世/.test(text)) return 'history';
+  if (/歴史|科学史|思想史|文明史|古代|中世|考古|人類史|遷跡/.test(text)) return 'history';
   if (/神秘|オカルト|錬金|宗教|精神世界|スピリチュアル|陰謀|予言/.test(text)) return 'occult';
   if (/科学|宇宙|ai|物理|生命|数学|研究|発見|技術/.test(text)) return 'science';
   return 'mixed';
@@ -694,6 +763,30 @@ async function braveSearch(query, apiKey, offset = 0) {
   throw Object.assign(new Error('ネットワークエラー: すべての接続先に失敗しました'), { detailInfo: detail });
 }
 
+function parseAgeToTimestamp(age) {
+  if (!age) return 0;
+  // ISO日付文字列を試みる
+  const d = new Date(age);
+  if (!isNaN(d.getTime())) return d.getTime();
+  // 英語相対表現 "3 hours ago" / "2 days ago" etc.
+  const enMatch = age.match(/(\d+)\s*(second|minute|hour|day|week|month|year)/i);
+  if (enMatch) {
+    const n = parseInt(enMatch[1], 10);
+    const unit = enMatch[2].toLowerCase();
+    const ms = { second: 1e3, minute: 6e4, hour: 36e5, day: 864e5, week: 6048e5, month: 2592e6, year: 31536e6 }[unit] || 0;
+    return Date.now() - n * ms;
+  }
+  // 日本語相対表現 "3日前" / "1週間前" / "2時間前" etc.
+  const jaMatch = age.match(/(\d+)\s*(秒|分|時間|日|週間|週|ヶ月|か月|カ月|ヵ月|年)/);
+  if (jaMatch) {
+    const n = parseInt(jaMatch[1], 10);
+    const unit = jaMatch[2];
+    const ms = { '秒': 1e3, '分': 6e4, '時間': 36e5, '日': 864e5, '週間': 6048e5, '週': 6048e5, 'ヶ月': 2592e6, 'か月': 2592e6, 'カ月': 2592e6, 'ヵ月': 2592e6, '年': 31536e6 }[unit] || 0;
+    return Date.now() - n * ms;
+  }
+  return 0;
+}
+
 function braveResultsToArticles(data, category) {
   // News API: results are at top level (not nested under news.results / web.results)
   const results = data.results || [];
@@ -702,12 +795,11 @@ function braveResultsToArticles(data, category) {
     let date = '';
     let timestamp = 0;
     if (r.age) {
-      const d = new Date(r.age);
-      if (isNaN(d.getTime())) {
-        date = r.age;  // 相対表現はそのまま表示
+      timestamp = parseAgeToTimestamp(r.age);
+      if (timestamp) {
+        date = new Date(timestamp).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
       } else {
-        timestamp = d.getTime();
-        date = d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        date = r.age; // パース不能な場合はそのまま表示
       }
     }
     const source = r.meta_url?.hostname?.replace(/^www\./, '') ||
@@ -742,9 +834,21 @@ function renderCards() {
     el.innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">記事がありません</div><div class="empty-sub">「記事を取得」ボタンで最新記事を検索します</div></div>`;
     return;
   }
-  const sorted = articles.map((a, i) => [a, i]).reverse();
+  const indexed = articles.map((a, i) => [a, i]).filter(([a]) => !isHidden(a));
+  const sorted = indexed.sort(([a, ai], [b, bi]) => {
+    let cmp;
+    if (sortKey === 'date') {
+      cmp = (a.timestamp || 0) - (b.timestamp || 0);
+      if (cmp === 0) cmp = ai - bi; // 日付同値は取得順
+    } else {
+      cmp = ai - bi; // 取得順 = 配列インデックス
+    }
+    return sortDir === 'desc' ? -cmp : cmp;
+  });
   el.innerHTML = `<div class="grid">${sorted.map(([a, i]) => `
     <div class="card ${a.category}" data-idx="${i}">
+      <button class="hide-btn" title="非表示" onclick="hideArticle('${a.url}', event)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      ${a.isNew ? '<span class="new-badge">New</span>' : ''}
       <div class="card-icons">
         <button class="read-btn${isRead(a) ? ' active' : ''}" title="既読">
           ${isRead(a)
@@ -778,7 +882,7 @@ function renderCards() {
     </div>`).join('')}</div>`;
 
   el.querySelector('.grid').addEventListener('click', e => {
-    if (e.target.closest('.bookmark-btn') || e.target.closest('.fav-btn') || e.target.closest('.video-btn') || e.target.closest('.videodone-btn')) return;
+    if (e.target.closest('.bookmark-btn') || e.target.closest('.fav-btn') || e.target.closest('.video-btn') || e.target.closest('.videodone-btn') || e.target.closest('.hide-btn')) return;
     const card = e.target.closest('.card[data-idx]');
     if (!card) return;
     const a = articles[parseInt(card.dataset.idx, 10)];
@@ -805,6 +909,28 @@ function getApiKeyOrShowError() {
   return key;
 }
 
+async function fetchUntilNew(query, apiKey, category, existingUrlSnapshot, target = 20) {
+  const seen = new Set(existingUrlSnapshot);
+  const collected = [];
+  let offset = 0;
+  const MAX_OFFSET = 9; // Brave News API はページ番号 0〜9 まで
+  while (collected.length < target && offset <= MAX_OFFSET) {
+    const data = await braveSearch(query, apiKey, offset);
+    const arts = braveResultsToArticles(data, category);
+    if (!arts.length) break;
+    for (const a of arts) {
+      if (a.url && !seen.has(a.url)) {
+        seen.add(a.url);
+        collected.push(a);
+      }
+      if (collected.length >= target) break;
+    }
+    if (arts.length < 20) break; // APIの結果が尽きた
+    offset += 1;
+  }
+  return collected;
+}
+
 async function fetchArticles() {
   if (loading) return;
   loading = true;
@@ -824,9 +950,27 @@ async function fetchArticles() {
 
   try {
     const queries = CAT_QUERIES[activeFilter] || CAT_QUERIES.all;
-    const results = await Promise.all(queries.map(q => braveSearch(q, apiKey, 0)));
-    const merged = results.flatMap(d => braveResultsToArticles(d, activeFilter));
-    articles = mergeWithCache(merged);
+    const cached = loadCachedArticles();
+    cached.forEach(a => { a.isNew = false; });
+    const existingUrls = new Set(cached.map(a => a.url).filter(Boolean));
+
+    const perQueryResults = await Promise.all(
+      queries.map(q => fetchUntilNew(q, apiKey, activeFilter, existingUrls))
+    );
+
+    const globalSeen = new Set(existingUrls);
+    const allNew = [];
+    for (const batch of perQueryResults) {
+      for (const a of batch) {
+        if (!globalSeen.has(a.url)) {
+          globalSeen.add(a.url);
+          a.isNew = true;
+          allNew.push(a);
+        }
+      }
+    }
+
+    articles = saveCachedArticles([...cached, ...allNew]);
     renderCards();
   } catch (err) {
     showError('エラー: ' + err.message, err.detailInfo || null);
