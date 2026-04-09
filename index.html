@@ -700,11 +700,15 @@ function braveResultsToArticles(data, category) {
   return results.map(r => {
     // age フィールド: ISO日付文字列 or 相対表現 ("2 hours ago")
     let date = '';
+    let timestamp = 0;
     if (r.age) {
       const d = new Date(r.age);
-      date = isNaN(d.getTime())
-        ? r.age  // 相対表現はそのまま表示
-        : d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      if (isNaN(d.getTime())) {
+        date = r.age;  // 相対表現はそのまま表示
+      } else {
+        timestamp = d.getTime();
+        date = d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      }
     }
     const source = r.meta_url?.hostname?.replace(/^www\./, '') ||
                    r.source ||
@@ -716,6 +720,7 @@ function braveResultsToArticles(data, category) {
       category: cat,
       source,
       date,
+      timestamp,
       url: r.url || '',
     };
   }).filter(a => a.title);
@@ -737,7 +742,8 @@ function renderCards() {
     el.innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">記事がありません</div><div class="empty-sub">「記事を取得」ボタンで最新記事を検索します</div></div>`;
     return;
   }
-  el.innerHTML = `<div class="grid">${articles.map((a, i) => `
+  const sorted = articles.map((a, i) => [a, i]).reverse();
+  el.innerHTML = `<div class="grid">${sorted.map(([a, i]) => `
     <div class="card ${a.category}" data-idx="${i}">
       <div class="card-icons">
         <button class="read-btn${isRead(a) ? ' active' : ''}" title="既読">
